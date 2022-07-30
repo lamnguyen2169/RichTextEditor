@@ -41,14 +41,16 @@
     
     if (attributedString.length > 0) {
         if ([defaultFont isKindOfClass:[NSFont class]]) {
-            NSArray<NSFont *> *availableFonts = [[RTEFontManager sharedManager] availableFonts];
+            NSDictionary<NSString *, NSFont *> *availableFonts = [[RTEFontManager sharedManager] availableFontsDictionary];
             
             [attributedString beginEditing];
             [attributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, attributedString.length) options:kNilOptions usingBlock:^(id _Nullable value, NSRange range, BOOL * _Nonnull stop) {
                 if ([value isKindOfClass:[NSFont class]]) {
                     NSFont *font = (NSFont *)value;
+                    BOOL fontNotFound = (font.familyName == nil) || ((font.familyName != nil) && ([availableFonts objectForKey:font.familyName] == nil));
                     
-                    if (![availableFonts containsObject:font]) {
+                    /// Set default font to the attributed string after parsing from HTML string, in case of no available font found.
+                    if (fontNotFound) {
                         BOOL isBold = [font isBold];
                         BOOL isItalic = [font isItalic];
                         NSFont *replacingFont = [NSFont fontWithName:defaultFont.fontName size:font.pointSize boldTrait:isBold italicTrait:isItalic];

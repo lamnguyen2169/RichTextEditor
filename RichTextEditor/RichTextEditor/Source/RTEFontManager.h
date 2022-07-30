@@ -13,6 +13,7 @@
 // MARK: -
 
 @property (nonatomic, strong, readonly) NSArray<NSFont *> *availableFonts;
+@property (nonatomic, strong, readonly) NSDictionary<NSString *, NSFont *> *availableFontsDictionary;
 
 // MARK: -
 

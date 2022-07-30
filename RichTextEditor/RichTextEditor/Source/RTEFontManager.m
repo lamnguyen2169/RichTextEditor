@@ -10,6 +10,7 @@
 
 @interface RTEFontManager () {
     NSMutableArray<NSFont *> *_availableFonts;
+    NSMutableDictionary<NSString *, NSFont *> *_availableFontsDictionary;
 }
 
 @end
@@ -35,6 +36,7 @@
 - (instancetype)init {
     if (self = [super init]) {
         _availableFonts = [[NSMutableArray alloc] init];
+        _availableFontsDictionary = [[NSMutableDictionary alloc] init];
         
         NSFontCollection *collection = [NSFontCollection fontCollectionWithName:NSFontCollectionUser];
         NSArray<NSString *> *availableFontFamilies = [[NSFontManager sharedFontManager] availableFontFamilies];
@@ -44,6 +46,7 @@
                 NSFont *font = [NSFont fontWithName:family size:12];
                 
                 [_availableFonts addObject:font];
+                [_availableFontsDictionary setObject:font forKey:family];
             }
         }
     }
@@ -55,6 +58,10 @@
 
 - (NSArray<NSFont *> *)availableFonts {
     return _availableFonts;
+}
+
+- (NSDictionary<NSString *, NSFont *> *)availableFontsDictionary; {
+    return _availableFontsDictionary;
 }
 
 // MARK: -
