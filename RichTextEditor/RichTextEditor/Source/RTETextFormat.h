@@ -2,8 +2,8 @@
 //  RTETextFormat.h
 //  Presenter
 //
-//  Created by lam1611 on 7/8/22.
-//  Copyright © 2022 Personify. All rights reserved.
+//  Created by ChrisK on 7/8/22.
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
@@ -16,7 +16,7 @@
 @property (nonatomic, assign) BOOL isUnderline;
 @property (nonatomic, assign) BOOL isStrikethrough;
 @property (nonatomic, assign) BOOL isBulletedList;
-@property (nonatomic, assign) BOOL isOrderedList;
+@property (nonatomic, assign) BOOL isNumberingList;
 @property (nonatomic, assign) BOOL hyperlinkEnabled;
 @property (nonatomic, assign) NSTextAlignment textAlignment;
 @property (nonatomic, strong, nullable) NSURL *hyperlink;

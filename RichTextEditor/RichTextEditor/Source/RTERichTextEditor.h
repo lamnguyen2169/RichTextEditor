@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 Aryan Ghassemi. All rights reserved.
 //  Heavily modified for macOS by Deadpikle
 //  Copyright (c) 2016 Deadpikle. All rights reserved.
+//  Modified for macOS by ChrisK
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 // https://github.com/aryaxt/iOS-Rich-Text-Editor -- Original
 // https://github.com/Deadpikle/macOS-Rich-Text-Editor -- Fork
@@ -56,7 +58,7 @@ typedef NS_ENUM(NSInteger, RichTextEditorPreviewChange) {
     RichTextEditorPreviewChangeSpace            = 12,
     RichTextEditorPreviewChangeEnter            = 13,
     RichTextEditorPreviewChangeBulletedList     = 14,
-    RichTextEditorPreviewChangeOrderedList      = 15,
+    RichTextEditorPreviewChangeNumberingList    = 15,
     RichTextEditorPreviewChangeHyperLink        = 16,
     RichTextEditorPreviewChangeMouseDown        = 17,
     RichTextEditorPreviewChangeMouseDragged     = 18,
@@ -75,7 +77,7 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
     RichTextEditorShortcutIncreaseFontSize      = 1 << 4,
     RichTextEditorShortcutDecreaseFontSize      = 1 << 5,
     RichTextEditorShortcutBulletedList          = 1 << 6,
-    RichTextEditorShortcutOrderedList           = 1 << 7,
+    RichTextEditorShortcutNumberingList         = 1 << 7,
     RichTextEditorShortcutLeaveBulletedList     = 1 << 8,
     RichTextEditorShortcutDecreaseIndent        = 1 << 9,
     RichTextEditorShortcutIncreaseIndent        = 1 << 10
@@ -168,7 +170,10 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 - (void)userSelectedStrikethrough;
 
 /// Toggle bulleted list.
-- (void)userSelectedBullet;
+- (void)userSelectedBulletedList;
+
+/// Toggle numbered list.
+- (void)userSelectedNumberingList;
 
 /// Increase the total indentation of the current paragraph.
 - (void)userSelectedIncreaseIndent;
@@ -182,9 +187,11 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 /// Change the text color for the currently selected text.
 - (void)userSelectedTextColor:(NSColor *_Nullable)color;
 
-/// Embedded hyperlink for for the currently selected text.
+/// Embedded hyperlink for the currently selected text.
 - (void)userApplyHyperlink:(NSURL *_Nullable)url;
+/// Embedded hyperlink for the currently selected text.
 - (void)userApplyHyperlink:(NSURL *_Nullable)url color:(NSColor *_Nullable)color;
+/// Embedded hyperlink for the currently selected text.
 - (void)userApplyHyperlink:(NSURL *_Nullable)url color:(NSColor *_Nullable)color underlineStyle:(NSUnderlineStyle)underlineStyle;
 
 /// Perform an undo operation if one is available.
@@ -248,9 +255,6 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 /// Converts the provided htmlString into an NSAttributedString and then
 /// sets the editor's text to the attributed string.
 - (void)setHtmlString:(NSString *_Nonnull)htmlString;
-
-/// Grabs the NSString used as the bulleted list prefix.
-- (NSString *_Nonnull)bulletString;
 
 /// Converts the provided NSAttributedString into an HTML string.
 + (NSString *_Nonnull)htmlStringFromAttributedText:(NSAttributedString *_Nonnull)text;

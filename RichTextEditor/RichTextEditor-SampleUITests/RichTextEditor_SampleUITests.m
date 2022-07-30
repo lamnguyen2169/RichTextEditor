@@ -2,7 +2,8 @@
 //  RichTextEditor_SampleUITests.m
 //  RichTextEditor-SampleUITests
 //
-//  Created by lam1611 on 7/5/22.
+//  Created by ChrisK on 7/5/22.
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 
 #import <XCTest/XCTest.h>

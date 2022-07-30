@@ -2,8 +2,8 @@
 //  NSString+Extensions.m
 //  macOSRTESample
 //
-//  Created by lam1611 on 7/5/22.
-//  Copyright © 2022 Pikle Productions. All rights reserved.
+//  Created by ChrisK on 7/5/22.
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 
 #import "NSString+Extensions.h"

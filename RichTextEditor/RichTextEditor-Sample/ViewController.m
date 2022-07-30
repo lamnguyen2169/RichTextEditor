@@ -44,7 +44,7 @@
 @property (weak) IBOutlet NSButton *underlineButton;
 @property (weak) IBOutlet NSButton *strikethroughButton;
 @property (weak) IBOutlet NSButton *bulletedListButton;
-@property (weak) IBOutlet NSButton *orderedListButton;
+@property (weak) IBOutlet NSButton *numberingListButton;
 @property (weak) IBOutlet NSButton *decreaseIndentButton;
 @property (weak) IBOutlet NSButton *increaseIndentButton;
 @property (weak) IBOutlet NSButton *fontNameButton;
@@ -82,7 +82,7 @@
     [self.richTextView setWantsLayer:YES];
     [[self.richTextView layer] setCornerRadius:6];
     [[self.richTextView layer] setBackgroundColor:[[NSColor colorWithSRGBRed:(252.0 / 255) green:(223.0 / 255) blue:(193.0 / 255) alpha:1] CGColor]];
-    [self.textView setTextContainerInset:NSMakeSize(15, 15)];
+    [self.textView setTextContainerInset:NSMakeSize(0, 0)];
     self.textView.rteDelegate = self;
 }
 
@@ -92,15 +92,15 @@
 }
 
 - (void)configTextEditor {
-    NSString *text = @"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\
-    \n\
-    \n\
-    Tom he made a sign to me—kind of a little noise with his mouth—and we went creeping away on our hands and knees.\n\
-    When we was ten foot off Tom whispered to me, and wanted to tie Jim to the tree for fun. But I said no; he might wake and make a disturbance, and then they’d find out I warn’t in.\n\
-    Then Tom said he hadn’t got candles enough, and he would slip in the kitchen and get some more. I didn’t want him to try.\n\
-    I said Jim might wake up and come. But Tom wanted to resk it; so we slid in there and got three candles, and Tom laid five cents on the table for pay.\n\
-    Then we got out, and I was in a sweat to get away; but nothing would do Tom but he must crawl to where Jim was, on his hands and knees, and play something on him.\n\
-    I waited, and it seemed a good while, everything was so still and lonesome.\n";
+    NSString *text = @"Tom he made a sign to me—kind of a little noise with his mouth—and we went creeping away on our hands and knees.\n\
+When we was ten foot off Tom whispered to me, and wanted to tie Jim to the tree for fun. But I said no; he might wake and make a disturbance, and then they’d find out I warn’t in.\n\
+Then Tom said he hadn’t got candles enough, and he would slip in the kitchen and get some more. I didn’t want him to try.\n\
+I said Jim might wake up and come. But Tom wanted to resk it; so we slid in there and got three candles, and Tom laid five cents on the table for pay.\n\
+Then we got out, and I was in a sweat to get away; but nothing would do Tom but he must crawl to where Jim was, on his hands and knees, and play something on him.\n\
+I waited, and it seemed a good while, everything was so still and lonesome.\n\
+WELL, I got a good going-over in the morning from old Miss Watson on account of my clothes; but the widow she didn’t scold, but only cleaned off the grease and clay, and looked so sorry that I thought I would behave awhile if I could.\n\
+Then Miss Watson she took me in the closet and prayed, but nothing come of it.\n\
+She told me to pray every day, and whatever I asked for I would get it. But it warn’t so. I tried it.";
     
     if (self.textField == nil) {
         NSView *parent = self.inputView;
@@ -130,6 +130,7 @@
             [parent addSubview:scrollView];
             
             [textEditor setPlaceholderAttributedString:[[NSAttributedString alloc] initWithString:@"Input some text here..."]];
+            [textEditor setLineFragmentPadding:5];
             [textEditor setFont:[NSFont fontWithName:@"SavoyeLetPlain" size:18]];
             self.textField = textEditor;
         }
@@ -161,6 +162,8 @@
                                                                              views:NSDictionaryOfVariableBindings(scrollView)]];
             
             [textEditor setPlaceholderAttributedString:[[NSAttributedString alloc] initWithString:@"Input text..."]];
+            [textEditor setLineFragmentPadding:5];
+            [textEditor setWidthTracksTextView:YES];
             [textEditor setString:text];
             [textEditor setFont:[NSFont fontWithName:@"SavoyeLetPlain" size:36]];
             self.textView = textEditor;
@@ -175,7 +178,7 @@
         [self.underlineButton setEnabled:YES];
         [self.strikethroughButton setEnabled:YES];
         [self.bulletedListButton setEnabled:YES];
-        [self.orderedListButton setEnabled:YES];
+        [self.numberingListButton setEnabled:YES];
         [self.decreaseIndentButton setEnabled:YES];
         [self.increaseIndentButton setEnabled:YES];
         [self.fontNameButton setEnabled:YES];
@@ -189,7 +192,7 @@
         [self.underlineButton setEnabled:YES];
         [self.strikethroughButton setEnabled:YES];
         [self.bulletedListButton setEnabled:NO];
-        [self.orderedListButton setEnabled:NO];
+        [self.numberingListButton setEnabled:NO];
         [self.decreaseIndentButton setEnabled:NO];
         [self.increaseIndentButton setEnabled:NO];
         [self.fontNameButton setEnabled:NO];
@@ -311,10 +314,11 @@
 }
 
 - (IBAction)toggleBulletedList:(id)sender {
-    [self.currentTextEditor userSelectedBullet];
+    [self.currentTextEditor userSelectedBulletedList];
 }
 
-- (IBAction)toggleOrderedList:(id)sender {
+- (IBAction)toggleNumberingList:(id)sender {
+    [self.currentTextEditor userSelectedNumberingList];
 }
 
 - (IBAction)decreaseIndent:(id)sender {
@@ -412,10 +416,10 @@
         self.bulletedListButton.image = [[NSImage imageNamed:@"bulleted-list"] imageTintedWithColor:NSColor.blackColor];
     }
     
-    if (textFormat.isOrderedList) {
-        self.orderedListButton.image = [[NSImage imageNamed:@"ordered-list"] imageTintedWithColor:NSColor.blueColor];
+    if (textFormat.isNumberingList) {
+        self.numberingListButton.image = [[NSImage imageNamed:@"ordered-list"] imageTintedWithColor:NSColor.blueColor];
     } else {
-        self.orderedListButton.image = [[NSImage imageNamed:@"ordered-list"] imageTintedWithColor:NSColor.blackColor];
+        self.numberingListButton.image = [[NSImage imageNamed:@"ordered-list"] imageTintedWithColor:NSColor.blackColor];
     }
     
     if (textFormat.textColor != nil) {

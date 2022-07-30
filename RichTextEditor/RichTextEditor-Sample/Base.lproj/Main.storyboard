@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19529"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -752,7 +751,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d1G-iq-KLj" userLabel="Strikethrough Button">
-                                        <rect key="frame" x="135" y="483" width="47" height="32"/>
+                                        <rect key="frame" x="135" y="483" width="48" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="strike-through" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="jn3-9q-VOY">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -762,7 +761,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="JZH-gQ-uSS" userLabel="Bulledted List Button">
-                                        <rect key="frame" x="178" y="483" width="48" height="32"/>
+                                        <rect key="frame" x="179" y="483" width="48" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="bulleted-list" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="VNa-cz-e5S">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -772,17 +771,17 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Yk8-ny-1DL" userLabel="Ordered List Button">
-                                        <rect key="frame" x="222" y="483" width="47" height="32"/>
+                                        <rect key="frame" x="223" y="483" width="48" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="ordered-list" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="vCI-sZ-aGD">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
                                         </buttonCell>
                                         <connections>
-                                            <action selector="toggleOrderedList:" target="XfG-lQ-9wD" id="YDk-7D-Rka"/>
+                                            <action selector="toggleNumberingList:" target="XfG-lQ-9wD" id="YDk-7D-Rka"/>
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IzC-cU-J3E" userLabel="Decrease Indent Button">
-                                        <rect key="frame" x="265" y="483" width="48" height="32"/>
+                                        <rect key="frame" x="267" y="483" width="48" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="indent-decrease" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2V4-bK-jL3">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -792,7 +791,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="V39-48-p5t" userLabel="Increase Indent Button">
-                                        <rect key="frame" x="309" y="483" width="48" height="32"/>
+                                        <rect key="frame" x="311" y="483" width="48" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="indent-increase" imagePosition="overlaps" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="iiM-Ab-Sij">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -802,7 +801,7 @@
                                         </connections>
                                     </button>
                                     <button horizontalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="umw-cl-tKy" userLabel="Font Name Button">
-                                        <rect key="frame" x="353" y="483" width="158" height="32"/>
+                                        <rect key="frame" x="355" y="483" width="158" height="32"/>
                                         <buttonCell key="cell" type="push" title=".AppleSystemUIFont" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="irB-pB-Uzz">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -812,7 +811,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6zB-OB-uVB" userLabel="Decrease Font Size Button">
-                                        <rect key="frame" x="507" y="483" width="53" height="32"/>
+                                        <rect key="frame" x="509" y="483" width="53" height="32"/>
                                         <buttonCell key="cell" type="push" title="A" bezelStyle="rounded" image="arrowtriangle.down" catalog="system" imagePosition="right" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="fa5-BS-lDf">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system" size="10"/>
@@ -822,7 +821,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sF7-nf-z0U" userLabel="Increase Font Size Button">
-                                        <rect key="frame" x="556" y="483" width="59" height="32"/>
+                                        <rect key="frame" x="558" y="483" width="59" height="32"/>
                                         <buttonCell key="cell" type="push" title="A" bezelStyle="rounded" image="arrowtriangle.up" catalog="system" imagePosition="right" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="6Hv-T4-fcZ">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -832,7 +831,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="RUD-rU-uc8" userLabel="Font Size Button">
-                                        <rect key="frame" x="611" y="483" width="61" height="32"/>
+                                        <rect key="frame" x="613" y="483" width="61" height="32"/>
                                         <buttonCell key="cell" type="push" title="A" bezelStyle="rounded" image="rectangle.arrowtriangle.2.outward" catalog="system" imagePosition="right" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="57r-tM-KF0">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -842,7 +841,7 @@
                                         </connections>
                                     </button>
                                     <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="QPy-WT-EbH" userLabel="Hyper Link Button">
-                                        <rect key="frame" x="668" y="483" width="47" height="32"/>
+                                        <rect key="frame" x="670" y="483" width="47" height="32"/>
                                         <buttonCell key="cell" type="push" bezelStyle="rounded" image="link" catalog="system" imagePosition="right" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Ut0-x3-6ny">
                                             <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                             <font key="font" metaFont="system"/>
@@ -852,7 +851,7 @@
                                         </connections>
                                     </button>
                                     <colorWell translatesAutoresizingMaskIntoConstraints="NO" id="0rl-9J-wKz" userLabel="Color Picker Button">
-                                        <rect key="frame" x="718" y="490" width="20" height="20"/>
+                                        <rect key="frame" x="720" y="490" width="20" height="20"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="20" id="RcS-YG-jM4"/>
                                             <constraint firstAttribute="width" constant="20" id="rNG-Xu-YJY"/>
@@ -876,7 +875,7 @@
                                                 <rect key="frame" x="0.0" y="0.0" width="300" height="28"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="Mpe-jM-eXU">
                                                     <rect key="frame" x="0.0" y="0.0" width="300" height="28"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <textView drawsBackground="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" smartInsertDelete="YES" id="lhD-Lt-zyv" customClass="RichTextEditor">
                                                             <rect key="frame" x="0.0" y="0.0" width="300" height="28"/>
@@ -915,7 +914,7 @@
                                                 <rect key="frame" x="0.0" y="0.0" width="770" height="389"/>
                                                 <clipView key="contentView" drawsBackground="NO" id="BXv-xw-zBz">
                                                     <rect key="frame" x="0.0" y="0.0" width="770" height="389"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <textView drawsBackground="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" baseWritingDirection="leftToRight" smartInsertDelete="YES" id="2Iu-NI-9l8" customClass="RichTextEditor">
                                                             <rect key="frame" x="0.0" y="0.0" width="770" height="389"/>
@@ -1151,7 +1150,7 @@ I waited, and it seemed a good while, everything was so still and lonesome.</mut
                         <outlet property="increaseIndentButton" destination="V39-48-p5t" id="brJ-WS-ta7"/>
                         <outlet property="inputView" destination="TQL-Ig-FEH" id="MqK-wU-7Hg"/>
                         <outlet property="italicButton" destination="qGT-90-V9L" id="ylW-7c-WTk"/>
-                        <outlet property="orderedListButton" destination="Yk8-ny-1DL" id="iSN-Xe-C6f"/>
+                        <outlet property="numberingListButton" destination="Yk8-ny-1DL" id="iSN-Xe-C6f"/>
                         <outlet property="richTextView" destination="H7R-CZ-Ewd" id="d5F-92-uWz"/>
                         <outlet property="strikethroughButton" destination="d1G-iq-KLj" id="ZXP-Mb-fbU"/>
                         <outlet property="tabKeyAlwaysIndentsButton" destination="6YI-q0-k7G" id="Mbb-Se-SdN"/>

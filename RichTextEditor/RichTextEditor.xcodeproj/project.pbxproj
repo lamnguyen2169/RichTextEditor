@@ -34,6 +34,8 @@
 		F702879328740ECF00E01EAA /* RichTextEditor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F702872728740ACC00E01EAA /* RichTextEditor.framework */; };
 		F73F56FD28783F8500A84268 /* RTETextFormat.m in Sources */ = {isa = PBXBuildFile; fileRef = F73F56FB28783F8500A84268 /* RTETextFormat.m */; };
 		F73F56FE28783F8500A84268 /* RTETextFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = F73F56FC28783F8500A84268 /* RTETextFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F7B61813288931B2005611D9 /* RTELayoutManager.h in Headers */ = {isa = PBXBuildFile; fileRef = F7B61811288931B2005611D9 /* RTELayoutManager.h */; };
+		F7B61814288931B2005611D9 /* RTELayoutManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F7B61812288931B2005611D9 /* RTELayoutManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +99,8 @@
 		F702878D28740CF600E01EAA /* EditHyperLinkToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditHyperLinkToolbar.m; sourceTree = "<group>"; };
 		F73F56FB28783F8500A84268 /* RTETextFormat.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RTETextFormat.m; sourceTree = "<group>"; };
 		F73F56FC28783F8500A84268 /* RTETextFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RTETextFormat.h; sourceTree = "<group>"; };
+		F7B61811288931B2005611D9 /* RTELayoutManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RTELayoutManager.h; sourceTree = "<group>"; };
+		F7B61812288931B2005611D9 /* RTELayoutManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RTELayoutManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +233,8 @@
 				F702877528740B2E00E01EAA /* RTERichTextEditor.m */,
 				F73F56FC28783F8500A84268 /* RTETextFormat.h */,
 				F73F56FB28783F8500A84268 /* RTETextFormat.m */,
+				F7B61811288931B2005611D9 /* RTELayoutManager.h */,
+				F7B61812288931B2005611D9 /* RTELayoutManager.m */,
 				F702877628740B2E00E01EAA /* WZProtocolInterceptor.h */,
 				F702877D28740B2E00E01EAA /* WZProtocolInterceptor.m */,
 			);
@@ -274,6 +280,7 @@
 				F702878028740B2E00E01EAA /* RTERichTextEditor.h in Headers */,
 				F73F56FE28783F8500A84268 /* RTETextFormat.h in Headers */,
 				F702878328740B2E00E01EAA /* NSAttributedString+RichTextEditor.h in Headers */,
+				F7B61813288931B2005611D9 /* RTELayoutManager.h in Headers */,
 				F702873828740ACC00E01EAA /* RichTextEditor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -467,6 +474,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F702878128740B2E00E01EAA /* NSFont+RichTextEditor.m in Sources */,
+				F7B61814288931B2005611D9 /* RTELayoutManager.m in Sources */,
 				F702872C28740ACC00E01EAA /* RichTextEditor.docc in Sources */,
 				F702878528740B2E00E01EAA /* WZProtocolInterceptor.m in Sources */,
 				F73F56FD28783F8500A84268 /* RTETextFormat.m in Sources */,
