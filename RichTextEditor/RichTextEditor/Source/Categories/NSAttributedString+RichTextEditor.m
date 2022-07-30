@@ -29,6 +29,8 @@
 
 #import "NSAttributedString+RichTextEditor.h"
 
+#import "NSFont+RichTextEditor.h"
+
 @implementation NSAttributedString (RichTextEditor)
 
 #pragma mark - Public Methods -
@@ -74,7 +76,7 @@
 }
 
 - (NSDictionary<NSAttributedStringKey, id> *)attributesAtIndex:(NSUInteger)location {
-    if ((self.string.length == 0) || (location == self.string.length)) {
+    if ((self.string.length == 0) || (location >= self.string.length)) {
         return @{}; // end of string, use whatever we're currently using
     } else {
         return [self attributesAtIndex:location effectiveRange:nil];

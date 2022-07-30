@@ -29,7 +29,6 @@
 // THE SOFTWARE.
 
 #import <Foundation/Foundation.h>
-#import "NSFont+RichTextEditor.h"
 
 @interface NSAttributedString (RichTextEditor)
 

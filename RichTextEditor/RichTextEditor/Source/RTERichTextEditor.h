@@ -35,9 +35,8 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "RTETextFormat.h"
-
 @class RichTextEditor;
+@class RTETextFormat;
 
 // These values will always start from 0 and go up. If you want to add your own
 // preview changes via a subclass, start from 9999 and go down (or similar) and
@@ -119,7 +118,6 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 
 @property (nonatomic, strong, nullable) NSAttributedString *placeholderAttributedString;
 
-@property (nonatomic, assign) CGFloat defaultIndentationSize;
 @property (nonatomic, readonly) unichar lastSingleKeyPressed;
 
 /// If YES, only pastes text as rich text if the copy operation came from this class.
@@ -128,21 +126,21 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 /// pastes as plain text.
 /// If NO, performs the default paste: operation.
 /// Defaults to YES.
-@property BOOL allowsRichTextPasteOnlyFromThisClass;
+@property (nonatomic, assign) BOOL allowsRichTextPasteOnlyFromThisClass;
 
 /// Amount to change font size on each increase/decrease font size call.
 /// Defaults to 10.0f
-@property CGFloat fontSizeChangeAmount;
+@property (nonatomic, assign) CGFloat fontSizeChangeAmount;
 
 /// Maximum font size. Defaults to 128.0f.
-@property CGFloat maxFontSize;
+@property (nonatomic, assign) CGFloat maxFontSize;
 
 /// Minimum font size. Defaults to 10.0f.
-@property CGFloat minFontSize;
+@property (nonatomic, assign) CGFloat minFontSize;
 
 /// true if tab should always indent and shift+tab should always outdent the current paragraph(s);
 /// false to let the tab key be used as normal
-@property BOOL tabKeyAlwaysIndentsOutdents;
+@property (nonatomic, assign) BOOL tabKeyAlwaysIndentsOutdents;
 
 // MARK: -
 
@@ -216,7 +214,7 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 - (void)decreaseFontSize;
 
 /// Toggles whether or not the paragraphs in the currently selected text have a first
-/// line head indent value of self.defaultIndentationSize.
+/// line head indent value of self.firstLineHeadIndent.
 - (void)userSelectedParagraphFirstLineHeadIndent;
 
 /// Change the text alignment for the paragraphs in the currently selected text.
@@ -236,6 +234,9 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 
 /// Changes the editor's maximumNumberOfLines.
 - (void)setMaximumNumberOfLines:(CGFloat)numberOfLines;
+
+/// Adjusts color for the bulleted or numbered items.
+- (void)setBulletNumberingColor:(NSColor *_Nonnull)bulletNumberingColor;
 
 /// Changes the editor's contents to the given attributed string.
 - (void)setAttributedString:(NSAttributedString *_Nonnull)attributedString;

@@ -97,6 +97,7 @@
 		F702878B28740CF500E01EAA /* NSString+Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Extensions.m"; sourceTree = "<group>"; };
 		F702878C28740CF500E01EAA /* EditHyperLinkToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditHyperLinkToolbar.h; sourceTree = "<group>"; };
 		F702878D28740CF600E01EAA /* EditHyperLinkToolbar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EditHyperLinkToolbar.m; sourceTree = "<group>"; };
+		F735C1B9288EFA56007A9F9C /* RTEDefiniens.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RTEDefiniens.h; sourceTree = "<group>"; };
 		F73F56FB28783F8500A84268 /* RTETextFormat.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RTETextFormat.m; sourceTree = "<group>"; };
 		F73F56FC28783F8500A84268 /* RTETextFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RTETextFormat.h; sourceTree = "<group>"; };
 		F7B61811288931B2005611D9 /* RTELayoutManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RTELayoutManager.h; sourceTree = "<group>"; };
@@ -229,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				F702877828740B2E00E01EAA /* Categories */,
+				F735C1B9288EFA56007A9F9C /* RTEDefiniens.h */,
 				F702877728740B2E00E01EAA /* RTERichTextEditor.h */,
 				F702877528740B2E00E01EAA /* RTERichTextEditor.m */,
 				F73F56FC28783F8500A84268 /* RTETextFormat.h */,

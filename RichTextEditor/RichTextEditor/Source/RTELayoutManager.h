@@ -10,8 +10,19 @@
 
 @interface RTELayoutManager : NSLayoutManager
 
+@property (nonatomic, strong) NSColor *bulletNumberingColor;
+@property (nonatomic, assign) CGFloat bulletNumberingIndent;
+@property (nonatomic, assign) CGFloat firstLineHeadIndent;
+
 + (NSString *)kBulletString;
 + (NSString *)kNumberingString;
-+ (NSString *)indentationString;
++ (NSString *)kEncodedBulletString;
++ (NSString *)kEncodedNumberingString;
+
+@end
+
+@interface NSLayoutManager (RichTextEditor)
+
+- (RTELayoutManager *)RTEInstance;
 
 @end

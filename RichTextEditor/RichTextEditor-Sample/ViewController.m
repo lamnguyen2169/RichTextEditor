@@ -315,10 +315,26 @@ She told me to pray every day, and whatever I asked for I would get it. But it w
 
 - (IBAction)toggleBulletedList:(id)sender {
     [self.currentTextEditor userSelectedBulletedList];
+    
+    NSString *htmlString = [RichTextEditor htmlStringFromAttributedText:[self.currentTextEditor attributedString]];
+    NSLog(@"%s [Line %d] htmlString: %@", __PRETTY_FUNCTION__, __LINE__, htmlString);
+    
+    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString];
+    NSLog(@"%s [Line %d] attributedString: %@", __PRETTY_FUNCTION__, __LINE__, attributedString);
+    
+    //    [self.currentTextEditor setAttributedString:attributedString];
 }
 
 - (IBAction)toggleNumberingList:(id)sender {
     [self.currentTextEditor userSelectedNumberingList];
+    
+    NSString *htmlString = [RichTextEditor htmlStringFromAttributedText:[self.currentTextEditor attributedString]];
+    NSLog(@"%s [Line %d] htmlString: %@", __PRETTY_FUNCTION__, __LINE__, htmlString);
+    
+    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString];
+    NSLog(@"%s [Line %d] attributedString: %@", __PRETTY_FUNCTION__, __LINE__, attributedString);
+    
+    //     [self.currentTextEditor setAttributedString:attributedString];
 }
 
 - (IBAction)decreaseIndent:(id)sender {

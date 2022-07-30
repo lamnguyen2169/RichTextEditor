@@ -36,15 +36,13 @@
 #import  <objc/runtime.h>
 
 #import "RTERichTextEditor.h"
+
+#import "RTEDefiniens.h"
+#import "RTETextFormat.h"
 #import "RTELayoutManager.h"
 #import "NSFont+RichTextEditor.h"
 #import "NSAttributedString+RichTextEditor.h"
 #import "WZProtocolInterceptor.h"
-
-typedef NS_ENUM(NSInteger, ParagraphIndentation) {
-    ParagraphIndentationIncrease,
-    ParagraphIndentationDecrease
-};
 
 @interface RichTextEditor () <NSTextViewDelegate> {
 }
@@ -53,23 +51,26 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 /// Gets set to NO  when the user changes selection or starts typing
 @property (nonatomic, assign) BOOL typingAttributesInProgress;
 
-@property float currSysVersion;
+@property (nonatomic, assign) float currSysVersion;
 
-@property NSInteger MAX_INDENT;
-@property BOOL isInTextDidChange;
+@property (nonatomic, assign) NSInteger MAX_INDENT;
+@property (nonatomic, assign) BOOL isInTextDidChange;
 
-@property NSUInteger levelsOfUndo;
-@property NSUInteger previousCursorPosition;
+@property (nonatomic, assign) NSUInteger levelsOfUndo;
+@property (nonatomic, assign) NSUInteger previousCursorPosition;
 
-@property BOOL inBulletedList;
-@property BOOL inNumberedList;
-@property BOOL justDeletedBackward;
-@property NSString *latestReplacementString;
-@property NSString *latestStringReplaced;
+@property (nonatomic, strong) NSColor *bulletNumberingColor;
+@property (nonatomic, assign) CGFloat bulletNumberingIndent;
+@property (nonatomic, assign) CGFloat firstLineHeadIndent;
+@property (nonatomic, assign) BOOL inBulletedList;
+@property (nonatomic, assign) BOOL inNumberedList;
+@property (nonatomic, assign) BOOL justDeletedBackward;
+@property (nonatomic, strong) NSString *latestReplacementString;
+@property (nonatomic, strong) NSString *latestStringReplaced;
 
-@property (nonatomic) NSRange lastAnchorPoint;
-@property BOOL shouldEndColorChangeOnLeft;
-@property BOOL usesSingleLineMode;
+@property (nonatomic, assign) NSRange lastAnchorPoint;
+@property (nonatomic, assign) BOOL shouldEndColorChangeOnLeft;
+@property (nonatomic, assign) BOOL usesSingleLineMode;
 
 @property WZProtocolInterceptor *delegate_interceptor;
 
@@ -241,7 +242,6 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     self.fontSizeChangeAmount = 6.0f;
     self.maxFontSize = 128.0f;
     self.minFontSize = 10.0f;
-    
     self.levelsOfUndo = 10;
     
     self.latestReplacementString = @"";
@@ -249,12 +249,12 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     
     /// Instead of hard-coding the default indentation size, which can make bulleted lists look a little
     /// odd when increasing/decreasing their indent, use double \t characters width instead
-    /// The old defaultIndentationSize was 15
-    /// TODO: readjust this defaultIndentationSize when font size changes? Might make things weird.
-    NSDictionary *dictionary = [self dictionaryAtIndex:[self selectedRange].location];
-    CGSize expectedStringSize = [[RTELayoutManager indentationString] sizeWithAttributes:dictionary];
-    self.defaultIndentationSize = expectedStringSize.width;
-    self.MAX_INDENT = self.defaultIndentationSize * 10;
+    /// The old firstLineHeadIndent was 15
+    /// TODO: readjust this firstLineHeadIndent when font size changes? Might make things weird.
+    self.bulletNumberingColor = [NSColor colorWithSRGBRed:(28.0 / 255) green:(41.0 / 255) blue:(51.0 / 255) alpha:1.0];
+    self.bulletNumberingIndent = kBulletNumberingIndent;
+    self.firstLineHeadIndent = kFirstLineHeadIndent;
+    self.MAX_INDENT = self.firstLineHeadIndent * 10;
     
     if (self.rteDataSource && [self.rteDataSource respondsToSelector:@selector(levelsOfUndo)]) {
         [[self undoManager] setLevelsOfUndo:[self.rteDataSource levelsOfUndo]];
@@ -265,6 +265,9 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     /// http://stackoverflow.com/questions/26454037/uitextview-text-selection-and-highlight-jumping-in-ios-8
     [[self layoutManager] setAllowsNonContiguousLayout:NO];
     [self setSelectedRange:NSMakeRange(0, 0)];
+    [self setBulletNumberingColor:self.bulletNumberingColor];
+    [self setBulletNumberingIndent:self.bulletNumberingIndent];
+    [self setFirstLineHeadIndent:self.firstLineHeadIndent];
     
     if ([[self.string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] isEqualToString:@""]) {
         [[self textStorage] setAttributedString:[[NSAttributedString alloc] initWithString:@""]];
@@ -754,6 +757,24 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     }
 }
 
+- (void)setBulletNumberingColor:(NSColor *)bulletNumberingColor {
+    _bulletNumberingColor = bulletNumberingColor;
+    
+    [[[self layoutManager] RTEInstance] setBulletNumberingColor:bulletNumberingColor];
+}
+
+- (void)setBulletNumberingIndent:(CGFloat)bulletNumberingIndent {
+    _bulletNumberingIndent = bulletNumberingIndent;
+    
+    [[[self layoutManager] RTEInstance] setBulletNumberingIndent:bulletNumberingIndent];
+}
+
+- (void)setFirstLineHeadIndent:(CGFloat)firstLineHeadIndent {
+    _firstLineHeadIndent = firstLineHeadIndent;
+    
+    [[[self layoutManager] RTEInstance] setFirstLineHeadIndent:firstLineHeadIndent];
+}
+
 + (BOOL)isHTML:(NSString *)string {
     /// https://stackoverflow.com/a/6817767
     /// /<(\w+)(\s+(\w+)(\s*\=\s*(\'|"|)(.*?)\\5\s*)?)*\s*>/
@@ -800,14 +821,101 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     return [[self class] htmlStringFromAttributedText:self.attributedString];
 }
 
++ (NSAttributedString *)encodingNonLossyASCIIAttributedText:(NSAttributedString *)attributedText {
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithAttributedString:attributedText];
+    NSString *bulletString = [RTELayoutManager kBulletString];
+    NSString *numberingString = [RTELayoutManager kNumberingString];
+    NSString *encodedBulletString = [RTELayoutManager kEncodedBulletString];
+    NSString *encodedNumberingString = [RTELayoutManager kEncodedNumberingString];
+    __block NSInteger rangeOffset = 0;
+    
+    [attributedText enumarateParagraphsInRange:NSMakeRange(0, attributedText.length) withBlock:^(NSRange paragraphRange) {
+        NSRange range = [attributedString firstParagraphRangeFromTextRange:NSMakeRange(paragraphRange.location + rangeOffset, paragraphRange.length)];
+        NSDictionary *dictionary = [attributedString attributesAtIndex:MAX((int)range.location, 0)];
+        NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+        
+        if (!paragraphStyle) {
+            paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        }
+        
+        BOOL currentParagraphHasBullet = [[attributedString.string substringFromIndex:range.location] hasPrefix:bulletString];
+        
+        if (currentParagraphHasBullet) {
+            NSMutableAttributedString *replacingString = [[NSMutableAttributedString alloc] initWithString:encodedBulletString attributes:nil];
+            [replacingString setAttributes:dictionary range:NSMakeRange(0, replacingString.string.length)];
+            
+            [attributedString replaceCharactersInRange:NSMakeRange(range.location, bulletString.length) withAttributedString:replacingString];
+            
+            rangeOffset = rangeOffset + replacingString.length - bulletString.length;
+        }
+        
+        BOOL currentParagraphHasNumbering = [[attributedString.string substringFromIndex:range.location] hasPrefix:numberingString];
+        
+        if (currentParagraphHasNumbering) {
+            NSMutableAttributedString *replacingString = [[NSMutableAttributedString alloc] initWithString:encodedNumberingString attributes:nil];
+            [replacingString setAttributes:dictionary range:NSMakeRange(0, replacingString.string.length)];
+            
+            [attributedString replaceCharactersInRange:NSMakeRange(range.location, numberingString.length) withAttributedString:replacingString];
+            
+            rangeOffset = rangeOffset + replacingString.length - numberingString.length;
+        }
+    }];
+    
+    return attributedString;
+}
+
++ (NSAttributedString *)decodingNonLossyASCIIAttributedText:(NSAttributedString *)attributedText {
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithAttributedString:attributedText];
+    NSString *bulletString = [RTELayoutManager kBulletString];
+    NSString *numberingString = [RTELayoutManager kNumberingString];
+    NSString *encodedBulletString = [RTELayoutManager kEncodedBulletString];
+    NSString *encodedNumberingString = [RTELayoutManager kEncodedNumberingString];
+    __block NSInteger rangeOffset = 0;
+    
+    [attributedText enumarateParagraphsInRange:NSMakeRange(0, attributedString.length) withBlock:^(NSRange paragraphRange) {
+        NSRange range = [attributedString firstParagraphRangeFromTextRange:NSMakeRange(paragraphRange.location + rangeOffset, paragraphRange.length)];
+        NSDictionary *dictionary = [attributedString attributesAtIndex:MAX((int)range.location, 0)];
+        NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+        
+        if (!paragraphStyle) {
+            paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        }
+        
+        BOOL currentParagraphHasBullet = [[attributedString.string substringFromIndex:range.location] hasPrefix:encodedBulletString];
+        
+        if (currentParagraphHasBullet) {
+            NSMutableAttributedString *replacingString = [[NSMutableAttributedString alloc] initWithString:bulletString attributes:nil];
+            [replacingString setAttributes:dictionary range:NSMakeRange(0, replacingString.string.length)];
+            
+            [attributedString replaceCharactersInRange:NSMakeRange(range.location, encodedBulletString.length) withAttributedString:replacingString];
+            
+            rangeOffset = rangeOffset + replacingString.length - encodedBulletString.length;
+        }
+        
+        BOOL currentParagraphHasNumbering = [[attributedString.string substringFromIndex:range.location] hasPrefix:encodedNumberingString];
+        
+        if (currentParagraphHasNumbering) {
+            NSMutableAttributedString *replacingString = [[NSMutableAttributedString alloc] initWithString:numberingString attributes:nil];
+            [replacingString setAttributes:dictionary range:NSMakeRange(0, replacingString.string.length)];
+            
+            [attributedString replaceCharactersInRange:NSMakeRange(range.location, encodedNumberingString.length) withAttributedString:replacingString];
+            
+            rangeOffset = rangeOffset + replacingString.length - encodedNumberingString.length;
+        }
+    }];
+    
+    return attributedString;
+}
+
 + (NSString *)htmlStringFromAttributedText:(NSAttributedString *)attributedText {
     NSString *string = [attributedText.string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     
     if (string.length > 0) {
-        NSData *data = [attributedText dataFromRange:NSMakeRange(0, attributedText.length)
-                                  documentAttributes:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
-                                                       NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
-                                               error:nil];
+        NSAttributedString *attributedString = [[self class] encodingNonLossyASCIIAttributedText:attributedText];
+        NSData *data = [attributedString dataFromRange:NSMakeRange(0, attributedString.length)
+                                    documentAttributes:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
+                                                         NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
+                                                 error:nil];
         
         return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     }
@@ -826,11 +934,11 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
                                                                          documentAttributes:nil error:&error];
             
             if (attributedString.length > 0) {
-                NSAttributedString *replacedString = [[self class] replacingBulletsIfApplicableForAttributedText:attributedString];
-                NSAttributedString *bulletString = [[self class] applyFormatListIfApplicableForAttributedText:replacedString withType:RichTextEditorPreviewChangeBulletedList];
-                NSAttributedString *numberingString = [[self class] applyFormatListIfApplicableForAttributedText:bulletString withType:RichTextEditorPreviewChangeNumberingList];
+                NSAttributedString *replacedString = [[self class] replacingBulletsIfApplicableForAttributedText:[[self class] decodingNonLossyASCIIAttributedText:attributedString]];
+                NSAttributedString *bulletedListString = [[self class] applyFormatListIfApplicableForAttributedText:replacedString withType:RichTextEditorPreviewChangeBulletedList];
+                NSAttributedString *numberingListString = [[self class] applyFormatListIfApplicableForAttributedText:bulletedListString withType:RichTextEditorPreviewChangeNumberingList];
                 
-                return numberingString;
+                return numberingListString;
             }
             
             return nil;
@@ -850,19 +958,12 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 + (NSAttributedString *)replacingBulletsIfApplicableForAttributedText:(NSAttributedString *)attributedText {
     NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithAttributedString:attributedText];
     
-    NSString *replacingBullet = @"•\u00A0";
+    NSString *replacingBullet = [NSString stringWithFormat:@"•%@", kNonBreakingSpace];
     NSString *bulletString = [RTELayoutManager kBulletString];
-    NSDictionary *dictionary = [attributedText attributesAtIndex:0];
-    CGSize expectedStringSize = [[RTELayoutManager indentationString] sizeWithAttributes:dictionary];
-    CGFloat defaultIndentationSize = expectedStringSize.width;
+    CGFloat firstLineHeadIndent = kFirstLineHeadIndent;
     __block NSInteger rangeOffset = 0;
     
     [attributedText enumarateParagraphsInRange:NSMakeRange(0, attributedText.length) withBlock:^(NSRange paragraphRange) {
-        NSRange rangeOfCurrentParagraph = [attributedString firstParagraphRangeFromTextRange:paragraphRange];
-        NSRange rangeOfPreviousParagraph = [attributedString firstParagraphRangeFromTextRange:NSMakeRange(rangeOfCurrentParagraph.location - 1, 0)];
-        NSDictionary *prevParaDict = [attributedString attributesAtIndex:rangeOfPreviousParagraph.location];
-        NSMutableParagraphStyle *prevParaStyle = [prevParaDict objectForKey:NSParagraphStyleAttributeName];
-        
         NSRange range = NSMakeRange(paragraphRange.location + rangeOffset, paragraphRange.length);
         NSDictionary *dictionary = [attributedString attributesAtIndex:MAX((int)range.location, 0)];
         NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
@@ -891,20 +992,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
             
             CGSize expectedStringSize = [bulletString sizeWithAttributes:dictionary];
             
-            /// See if the previous paragraph has a bullet
-            NSString *previousParagraph = [attributedString.string substringWithRange:rangeOfPreviousParagraph];
-            BOOL doesPrefixWithBullet = [previousParagraph hasPrefix:bulletString];
-            
-            /// Look at the previous paragraph to see what the firstLineHeadIndent should be for the
-            /// current bullet
-            /// if the previous paragraph has a bullet, use that paragraph's indent
-            /// if not, then use defaultIndentation size
-            if (!doesPrefixWithBullet) {
-                paragraphStyle.firstLineHeadIndent = defaultIndentationSize;
-            } else {
-                paragraphStyle.firstLineHeadIndent = prevParaStyle.firstLineHeadIndent;
-            }
-            
+            paragraphStyle.firstLineHeadIndent = firstLineHeadIndent;
             paragraphStyle.headIndent = expectedStringSize.width + paragraphStyle.firstLineHeadIndent;
             
             rangeOffset = rangeOffset + bulletString.length;
@@ -922,17 +1010,10 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     if ((formatType != RichTextEditorPreviewChangeBulletedList) && (formatType != RichTextEditorPreviewChangeNumberingList)) return attributedString;
     
     NSString *formatListString = (formatType == RichTextEditorPreviewChangeBulletedList) ? [RTELayoutManager kBulletString] : [RTELayoutManager kNumberingString];
-    NSDictionary *dictionary = [attributedText attributesAtIndex:0];
-    CGSize expectedStringSize = [[RTELayoutManager indentationString] sizeWithAttributes:dictionary];
-    CGFloat defaultIndentationSize = expectedStringSize.width;
+    CGFloat firstLineHeadIndent = kFirstLineHeadIndent;
     __block NSInteger rangeOffset = 0;
     
     [attributedText enumarateParagraphsInRange:NSMakeRange(0, attributedText.length) withBlock:^(NSRange paragraphRange) {
-        NSRange rangeOfCurrentParagraph = [attributedString firstParagraphRangeFromTextRange:paragraphRange];
-        NSRange rangeOfPreviousParagraph = [attributedString firstParagraphRangeFromTextRange:NSMakeRange(rangeOfCurrentParagraph.location - 1, 0)];
-        NSDictionary *prevParaDict = [attributedString attributesAtIndex:rangeOfPreviousParagraph.location];
-        NSMutableParagraphStyle *prevParaStyle = [prevParaDict objectForKey:NSParagraphStyleAttributeName];
-        
         NSRange range = NSMakeRange(paragraphRange.location + rangeOffset, paragraphRange.length);
         NSDictionary *dictionary = [attributedString attributesAtIndex:MAX((int)range.location, 0)];
         NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
@@ -961,20 +1042,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
             
             CGSize expectedStringSize = [formatListString sizeWithAttributes:dictionary];
             
-            /// See if the previous paragraph has a bullet
-            NSString *previousParagraph = [attributedString.string substringWithRange:rangeOfPreviousParagraph];
-            BOOL doesPrefixWithFormatList = [previousParagraph hasPrefix:formatListString];
-            
-            /// Look at the previous paragraph to see what the firstLineHeadIndent should be for the
-            /// current bullet
-            /// if the previous paragraph has a bullet, use that paragraph's indent
-            /// if not, then use defaultIndentation size
-            if (!doesPrefixWithFormatList) {
-                paragraphStyle.firstLineHeadIndent = defaultIndentationSize;
-            } else {
-                paragraphStyle.firstLineHeadIndent = prevParaStyle.firstLineHeadIndent;
-            }
-            
+            paragraphStyle.firstLineHeadIndent = firstLineHeadIndent;
             paragraphStyle.headIndent = expectedStringSize.width + paragraphStyle.firstLineHeadIndent;
             
             rangeOffset = rangeOffset + formatListString.length;
@@ -1108,11 +1176,11 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         
         if (paragraphIndentation == ParagraphIndentationIncrease &&
             paragraphStyle.headIndent < self.MAX_INDENT && paragraphStyle.firstLineHeadIndent < self.MAX_INDENT) {
-            paragraphStyle.headIndent += self.defaultIndentationSize;
-            paragraphStyle.firstLineHeadIndent += self.defaultIndentationSize;
+            paragraphStyle.headIndent += self.firstLineHeadIndent;
+            paragraphStyle.firstLineHeadIndent += self.firstLineHeadIndent;
         } else if (paragraphIndentation == ParagraphIndentationDecrease) {
-            paragraphStyle.headIndent -= self.defaultIndentationSize;
-            paragraphStyle.firstLineHeadIndent -= self.defaultIndentationSize;
+            paragraphStyle.headIndent -= self.firstLineHeadIndent;
+            paragraphStyle.firstLineHeadIndent -= self.firstLineHeadIndent;
             
             if (paragraphStyle.headIndent < 0) {
                 paragraphStyle.headIndent = 0; /// this is the right cursor placement
@@ -1168,7 +1236,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         }
         
         if (paragraphStyle.headIndent == paragraphStyle.firstLineHeadIndent) {
-            paragraphStyle.firstLineHeadIndent += self.defaultIndentationSize;
+            paragraphStyle.firstLineHeadIndent += self.firstLineHeadIndent;
         } else {
             paragraphStyle.firstLineHeadIndent = paragraphStyle.headIndent;
         }
@@ -1224,21 +1292,16 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         return;
     }
     
-    NSRange selectedRange = [self selectedRange];
-    
     [self sendDelegatePreviewChangeOfType:formatType];
     [self deleteMultipleFormatListsIfApplicable:formatType];
     
+    NSRange selectedRange = [self selectedRange];
     NSString *formatListString = (formatType == RichTextEditorPreviewChangeBulletedList) ? [RTELayoutManager kBulletString] : [RTELayoutManager kNumberingString];
     NSString *otherFormatListString = (formatType == RichTextEditorPreviewChangeBulletedList) ? [RTELayoutManager kNumberingString] : [RTELayoutManager kBulletString];
     NSRange initialSelectedRange = selectedRange;
     NSArray *rangeOfParagraphsInSelectedText = [self.attributedString rangeOfParagraphsFromTextRange:selectedRange];
     NSRange rangeOfCurrentParagraph = [self.attributedString firstParagraphRangeFromTextRange:selectedRange];
     BOOL firstParagraphHasFormatList = [[self.string substringFromIndex:rangeOfCurrentParagraph.location] hasPrefix:formatListString];
-    
-    NSRange rangeOfPreviousParagraph = [self.attributedString firstParagraphRangeFromTextRange:NSMakeRange(rangeOfCurrentParagraph.location - 1, 0)];
-    NSDictionary *prevParaDict = [self dictionaryAtIndex:rangeOfPreviousParagraph.location];
-    NSMutableParagraphStyle *prevParaStyle = [prevParaDict objectForKey:NSParagraphStyleAttributeName];
     
     __block NSInteger rangeOffset = 0;
     __block BOOL mustDecreaseIndentAfterRemovingFormatList = NO;
@@ -1307,20 +1370,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
             
             CGSize expectedStringSize = [formatListString sizeWithAttributes:dictionary];
             
-            /// See if the previous paragraph has a bullet
-            NSString *previousParagraph = [self.string substringWithRange:rangeOfPreviousParagraph];
-            BOOL doesPrefixWithFormatList = [previousParagraph hasPrefix:formatListString];
-            
-            /// Look at the previous paragraph to see what the firstLineHeadIndent should be for the
-            /// current bullet
-            /// if the previous paragraph has a bullet, use that paragraph's indent
-            /// if not, then use defaultIndentation size
-            if (!doesPrefixWithFormatList) {
-                paragraphStyle.firstLineHeadIndent = self.defaultIndentationSize;
-            } else {
-                paragraphStyle.firstLineHeadIndent = prevParaStyle.firstLineHeadIndent;
-            }
-            
+            paragraphStyle.firstLineHeadIndent = self.firstLineHeadIndent;
             paragraphStyle.headIndent = expectedStringSize.width + paragraphStyle.firstLineHeadIndent;
             
             rangeOffset = rangeOffset + formatListString.length;
@@ -1449,7 +1499,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
             
             NSDictionary *attributesDictionary = [[self textStorage] attributesAtIndex:firstCharacterOfSelectedRange.location effectiveRange: NULL];
             
-            [self setTypingAttributes: attributesDictionary];
+            [self setTypingAttributes:attributesDictionary];
         }
     }
 }
@@ -1844,14 +1894,22 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 - (void)deleteMultipleFormatListsIfApplicable:(RichTextEditorPreviewChange)formatType {
     if ((formatType != RichTextEditorPreviewChangeBulletedList) && (formatType != RichTextEditorPreviewChangeNumberingList)) return;
     
+    NSRange selectedRange = [self selectedRange];
+    NSString *formatListString = (formatType == RichTextEditorPreviewChangeBulletedList) ? [RTELayoutManager kBulletString] : [RTELayoutManager kNumberingString];
+    NSRange initialSelectedRange = selectedRange;
+    NSRange rangeOfCurrentParagraph = [self.attributedString firstParagraphRangeFromTextRange:selectedRange];
+    NSArray *rangeOfParagraphsInSelectedText = [self.attributedString rangeOfParagraphsFromTextRange:selectedRange];
+    
     NSString *bulletString = [RTELayoutManager kBulletString];
     NSString *numberingString = [RTELayoutManager kNumberingString];
     NSString *noneFormatString = @"";
     
     __block NSInteger rangeOffset = 0;
+    __block BOOL mustDecreaseIndentAfterRemovingFormatList = NO;
+    __block BOOL isInFormatList = NO;
     __block NSMutableArray<NSString *> *usedFormats = [[NSMutableArray alloc] init];
     
-    [self enumarateThroughParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
+    [self.attributedString enumarateParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
         NSRange range = NSMakeRange(paragraphRange.location, paragraphRange.length);
         
         if ([[self.string substringFromIndex:range.location] hasPrefix:bulletString]) {
@@ -1879,14 +1937,30 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
                 [[self textStorage] deleteCharactersInRange:NSMakeRange(range.location, bulletString.length)];
                 
                 rangeOffset = rangeOffset - bulletString.length;
+                mustDecreaseIndentAfterRemovingFormatList = YES;
             } else if ([[self.string substringFromIndex:range.location] hasPrefix:numberingString]) {
                 range = NSMakeRange(range.location, range.length - numberingString.length);
                 
                 [[self textStorage] deleteCharactersInRange:NSMakeRange(range.location, numberingString.length)];
                 
                 rangeOffset = rangeOffset - numberingString.length;
+                mustDecreaseIndentAfterRemovingFormatList = YES;
             }
         }];
+        
+        NSRange rangeForSelection;
+        if (rangeOfParagraphsInSelectedText.count == 1 && rangeOfCurrentParagraph.length == 0 && isInFormatList) {
+            rangeForSelection = NSMakeRange(rangeOfCurrentParagraph.location + formatListString.length, 0);
+        } else {
+            if (initialSelectedRange.length == 0) {
+                rangeForSelection = NSMakeRange(initialSelectedRange.location + rangeOffset, 0);
+            } else {
+                NSRange fullRange = [self fullRangeFromArrayOfParagraphRanges:rangeOfParagraphsInSelectedText];
+                rangeForSelection = NSMakeRange(fullRange.location, fullRange.length + rangeOffset - (mustDecreaseIndentAfterRemovingFormatList ? 0 : 1));
+            }
+        }
+        
+        [self setSelectedRange:rangeForSelection];
     }
 }
 
