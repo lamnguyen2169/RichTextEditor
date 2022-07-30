@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 Aryan Ghassemi. All rights reserved.
 //  Heavily modified for macOS by Deadpikle
 //  Copyright (c) 2016 Deadpikle. All rights reserved.
+//  Modified for macOS by ChrisK
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 // https://github.com/aryaxt/iOS-Rich-Text-Editor -- Original
 // https://github.com/Deadpikle/macOS-Rich-Text-Editor -- Fork
@@ -32,7 +34,7 @@
 
 @interface NSAttributedString (RichTextEditor)
 
-- (nullable instancetype)initWithData:(NSData *_Nonnull)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *_Nonnull)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError *__autoreleasing _Nullable * _Nullable)error defaultFont:(NSFont *_Nullable)defaultFont;
+- (nullable instancetype)initWithData:(NSData *_Nonnull)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *_Nonnull)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError *__autoreleasing _Nullable * _Nullable)error defaultAttributes:(NSDictionary<NSAttributedStringKey, id> *_Nonnull)defaultAttributes;
 
 - (NSRange)firstParagraphRangeFromTextRange:(NSRange)range;
 - (NSDictionary<NSAttributedStringKey, id> *_Nonnull)attributesAtIndex:(NSUInteger)location;

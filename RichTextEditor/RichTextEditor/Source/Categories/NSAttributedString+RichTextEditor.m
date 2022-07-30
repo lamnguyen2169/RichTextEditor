@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 Aryan Ghassemi. All rights reserved.
 //  Heavily modified for macOS by Deadpikle
 //  Copyright (c) 2016 Deadpikle. All rights reserved.
+//  Modified for macOS by ChrisK
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 // https://github.com/aryaxt/iOS-Rich-Text-Editor -- Original
 // https://github.com/Deadpikle/macOS-Rich-Text-Editor -- Fork
@@ -34,12 +36,30 @@
 
 @implementation NSAttributedString (RichTextEditor)
 
-- (nullable instancetype)initWithData:(NSData *)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError **)error defaultFont:(NSFont *_Nullable)defaultFont {
+- (nullable instancetype)initWithData:(NSData *_Nonnull)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *_Nonnull)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError *__autoreleasing _Nullable * _Nullable)error defaultAttributes:(NSDictionary<NSAttributedStringKey, id> *_Nonnull)defaultAttributes {
     NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithData:data
                                                                                           options:options
-                                                                               documentAttributes:documentAttributes error:error];
+                                                                               documentAttributes:documentAttributes
+                                                                                            error:error];
     
     if (attributedString.length > 0) {
+        /// Set default color to the attributed string after parsing from HTML string, in case of no available color found.
+        NSColor *foregroundColor = [defaultAttributes objectForKey:NSForegroundColorAttributeName];
+        
+        if ([foregroundColor isKindOfClass:[NSColor class]]) {
+            [attributedString beginEditing];
+            [attributedString enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0, attributedString.length) options:kNilOptions usingBlock:^(id _Nullable value, NSRange range, BOOL * _Nonnull stop) {
+                /// Set default color to the attributed string after parsing from HTML string, in case of no available color found.
+                if (![value isKindOfClass:[NSColor class]]) {
+                    [attributedString addAttribute:NSForegroundColorAttributeName value:foregroundColor range:range];
+                }
+            }];
+            [attributedString endEditing];
+        }
+        
+        /// Set default font to the attributed string after parsing from HTML string, in case of no available font found.
+        NSFont *defaultFont = [defaultAttributes objectForKey:NSFontAttributeName];
+        
         if ([defaultFont isKindOfClass:[NSFont class]]) {
             NSDictionary<NSString *, NSFont *> *availableFonts = [[RTEFontManager sharedManager] availableFontsDictionary];
             

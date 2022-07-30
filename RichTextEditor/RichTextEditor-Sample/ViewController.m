@@ -4,6 +4,8 @@
 //
 //  Created by Deadpikle on 3/28/18.
 //  Copyright © 2018 Pikle Productions. All rights reserved.
+//  Modified for macOS by ChrisK
+//  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 
 #import "ViewController.h"
@@ -317,10 +319,13 @@ She told me to pray every day, and whatever I asked for I would get it. But it w
     NSString *htmlString = [RichTextEditor htmlStringFromAttributedText:[self.currentTextEditor attributedString]];
     NSLog(@"%s [Line %d] htmlString: %@", __PRETTY_FUNCTION__, __LINE__, htmlString);
     
-    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString];
+    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString defaultAttributes:@{
+        NSFontAttributeName: [NSFont fontWithName:@"SavoyeLetPlain" size:36],
+        NSForegroundColorAttributeName: [NSColor blackColor],
+    }];
     NSLog(@"%s [Line %d] attributedString: %@", __PRETTY_FUNCTION__, __LINE__, attributedString);
     
-    //    [self.currentTextEditor setAttributedString:attributedString];
+    //     [self.currentTextEditor setAttributedString:attributedString];
 }
 
 - (IBAction)toggleNumberingList:(id)sender {
@@ -329,7 +334,10 @@ She told me to pray every day, and whatever I asked for I would get it. But it w
     NSString *htmlString = [RichTextEditor htmlStringFromAttributedText:[self.currentTextEditor attributedString]];
     NSLog(@"%s [Line %d] htmlString: %@", __PRETTY_FUNCTION__, __LINE__, htmlString);
     
-    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString];
+    NSAttributedString *attributedString = [RichTextEditor attributedStringFromHTMLString:htmlString defaultAttributes:@{
+        NSFontAttributeName: [NSFont fontWithName:@"SavoyeLetPlain" size:36],
+        NSForegroundColorAttributeName: [NSColor blackColor],
+    }];
     NSLog(@"%s [Line %d] attributedString: %@", __PRETTY_FUNCTION__, __LINE__, attributedString);
     
     //     [self.currentTextEditor setAttributedString:attributedString];
@@ -386,15 +394,15 @@ She told me to pray every day, and whatever I asked for I would get it. But it w
 
 // MARK: - RichTextEditorDelegate
 
-- (void)richTextEditorBecomesFirstResponder:(RichTextEditor *)editor {
+- (void)richTextEditorBecomesFirstResponder:(RichTextEditor *)editor withFormat:(RTETextFormat *)textFormat {
     [self configToolbarForTextEditor];
+    [self richTextEditor:editor changedSelectionTo:[editor selectedRange] withFormat:textFormat];
 }
 
 - (void)richTextEditorResignsFirstResponder:(RichTextEditor *)editor {
 }
 
 - (void)richTextEditor:(RichTextEditor *)editor changeAboutToOccurOfType:(RichTextEditorPreviewChange)type {
-    // NSLog(@"User just edited the RTE by performing this operation: %@", [RichTextEditor convertPreviewChangeTypeToString:type withNonSpecialChangeText:YES]);
 }
 
 - (void)richTextEditor:(RichTextEditor *)editor changedSelectionTo:(NSRange)range withFormat:(RTETextFormat *)textFormat {

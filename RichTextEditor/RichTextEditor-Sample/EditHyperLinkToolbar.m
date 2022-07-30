@@ -1,6 +1,6 @@
 //
 //  EditHyperLinkToolbar.m
-//  macOSRTESample
+//  RichTextEditor-Sample
 //
 //  Created by ChrisK on 7/5/22.
 //  Copyright (c) 2022 ChrisK. All rights reserved.

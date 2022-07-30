@@ -260,14 +260,14 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 /// Converts the provided NSAttributedString into an HTML string.
 + (NSString *_Nonnull)htmlStringFromAttributedText:(NSAttributedString *_Nonnull)text;
 
-/// Converts the given HTML string into an NSAttributedString with defaultFont is nil.
-/// @note If you don't provide the defaultFont and the html string contains custom font,
+/// Converts the given HTML string into an NSAttributedString with defaultAttributes is empty dictionary.
+/// @note If you don't provide the defaultAttributes and the html string contains custom font,
 /// it might return to the .AppleSystemUIFont or Times-Roman font.
 + (NSAttributedString *_Nullable)attributedStringFromHTMLString:(NSString *_Nonnull)htmlString;
-/// Converts the given HTML string into an NSAttributedString with specific defaultFont.
-/// @note If you don't provide the defaultFont and the html string contains custom font,
+/// Converts the given HTML string into an NSAttributedString with specific defaultAttributes.
+/// @note If you don't provide the defaultAttributes and the html string contains custom font,
 /// it might return to the .AppleSystemUIFont or Times-Roman font.
-+ (NSAttributedString *_Nullable)attributedStringFromHTMLString:(NSString *_Nonnull)htmlString defaultFont:(NSFont *_Nullable)defaultFont;
++ (NSAttributedString *_Nullable)attributedStringFromHTMLString:(NSString *_Nonnull)htmlString defaultAttributes:(NSDictionary<NSAttributedStringKey, id> *_Nonnull)defaultAttributes;
 
 /// Converts a given RichTextEditorPreviewChange to a human-readable string
 + (NSString *_Nonnull)convertPreviewChangeTypeToString:(RichTextEditorPreviewChange)changeType withNonSpecialChangeText:(BOOL)shouldReturnStringForNonSpecialType;

@@ -52,7 +52,7 @@
                 
                 rangeOffset = rangeOffset + formatListString.length;
                 
-                NSDictionary *dictionary = [textStorage attributesAtIndex:MAX(paragraphRange.location + rangeOffset, 0)];
+                NSDictionary *dictionary = [textStorage attributesAtIndex:MAX(paragraphRange.location + ((paragraphRange.length > formatListString.length) ? rangeOffset : 0), 0)];
                 
                 if ([dictionary objectForKey:NSFontAttributeName] == nil) {
                     dictionary = [textStorage attributesAtIndex:MAX(paragraphRange.location, 0)];

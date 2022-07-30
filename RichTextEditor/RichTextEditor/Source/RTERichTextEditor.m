@@ -192,14 +192,20 @@
 - (void)setFrame:(NSRect)frame {
     NSView *parent = [self superview];
     NSRect parentFrame = [parent bounds];
-    NSRect dirtyRect = frame;
+    NSRect dirtyRect = NSIntegralRect(frame);
     
     if ([parent isKindOfClass:[NSClipView class]] && !NSEqualRects(parentFrame, frame)) {
         if (self.usesSingleLineMode) {
-            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), NSWidth(frame), NSHeight(parentFrame));
-            [[self textContainer] setContainerSize:NSMakeSize(FLT_MAX, NSHeight(frame))];
+            NSRect contentFrame = NSIntegralRect([[self textStorage] boundingRectWithSize:NSMakeSize(FLT_MAX, NSHeight(parentFrame)) options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading) context:nil]);
+            CGFloat contentWidth = (NSWidth(contentFrame) > NSWidth(parentFrame)) ? ((NSWidth(contentFrame) > NSWidth(dirtyRect)) ? NSWidth(contentFrame) : NSWidth(dirtyRect)) : NSWidth(parentFrame);
+            
+            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), contentWidth, NSHeight(parentFrame));
+            [[self textContainer] setContainerSize:NSMakeSize(FLT_MAX, NSHeight(parentFrame))];
         } else {
-            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), NSWidth(parentFrame), NSHeight(frame));
+            NSRect contentFrame = NSIntegralRect([[self textStorage] boundingRectWithSize:NSMakeSize(NSWidth(parentFrame), FLT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading) context:nil]);
+            CGFloat contentHeight = (NSHeight(contentFrame) > NSHeight(parentFrame)) ? ((NSHeight(contentFrame) > NSHeight(dirtyRect)) ? NSHeight(contentFrame) : NSHeight(dirtyRect)) : NSHeight(parentFrame);
+            
+            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), NSWidth(parentFrame), contentHeight);
             [[self textContainer] setContainerSize:NSMakeSize(NSWidth(parentFrame), FLT_MAX)];
         }
     }
@@ -295,6 +301,11 @@
         [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeEnter];
         self.inBulletedList = [self isInBulletedList];
         self.inNumberedList = [self isInNumberedList];
+        
+        /// Not allow inserting new line for single line mode.
+        if (self.usesSingleLineMode) {
+            return NO;
+        }
     }
     if ([replacementString isEqualToString:@" "]) {
         [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeSpace];
@@ -482,13 +493,62 @@
     return [[[self.attributedString string] substringFromIndex:rangeOfCurrentParagraph.location] isEqualToString:[RTELayoutManager kNumberingString]];
 }
 
+/// https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/PasteboardGuide106/Articles/pbUpdating105.html
+/// Reading
+/// Suppose there are five items on the pasteboard, two contain TIFF data, two contain RTF data, one contains a private data type. Calling readObjectsForClasses:options: with just the NSImage class will return an array containing two image objects. Calling with just the NSAttributedString class will return an array containing two attributed strings. Calling with both classes (NSImage and NSAttributedString) will return two image objects and two attributed strings.
+///
+///Notice that in the previous examples, the count of objects returned is less than the number of items on the pasteboard. Only objects of the requested classes are returned. If you add the NSPasteboardItem class to the array, then you will always get back an array that contains the same number of objects as there are items on the pasteboard. Since you provide the elements in the classes array in your preferred order, you should add the NSPasteboardItem class to the end of the array.
+/// // NSPasteboard *pasteboard = <#Get a pasteboard#>;
+/// NSArray *classes = [[NSArray alloc] initWithObjects:
+///                     [NSImage class], [NSAttributedString class], [NSPasteboardItem class], nil];
+/// NSDictionary *options = [NSDictionary dictionary];
+/// NSArray *copiedItems = [pasteboard readObjectsForClasses:classes options:options];
+/// if (copiedItems != nil) {
+///     // Do something with the contents.
+///     Methods
+///
+/// You can typically use API from OS X v10.5 and earlier with the APIs introduced in OS X v10.6 together in the same application. This allows you to migrate your code to the new API in a gradual fashion. With any given sequence of interaction, however, you should be consistent in using either the API from OS X v10.5 and earlier or the APIs introduced in OS X v10.6. For example, the following combination will not work:
+/// NSArray *fileURLs = <#An array of file URLs#>;
+/// NSPasteboard *pboard = [NSPasteboard generalPasteboard];
+/// NSArray *typeArray = [NSArray arrayWithObject:NSURLPboardType];
+/// [pboard declareTypes:typeArray owner:nil]; // 10.5
+/// [pboard writeObjects:fileURLs]; // 10.6
+- (void)replacingClipboardContentsIfApplicable:(NSPasteboard *)pasteboard {
+    if (self.usesSingleLineMode && [pasteboard canReadObjectForClasses:@[[NSString class]] options:@{}]) {
+        NSArray<NSString *> *clipboardContents = [pasteboard readObjectsForClasses:@[[NSString class]] options:@{}];
+        NSMutableArray<NSString *> *replacingContents = [[NSMutableArray alloc] init];
+        
+        for (NSString *content in clipboardContents) {
+            if ([content isKindOfClass:[NSString class]]) {
+                /// Remove all unnecessary whitespace and newline characters in string.
+                NSString *replacingContent = [content stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                NSArray *parts = [replacingContent componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                NSArray *filtered = [parts filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"SELF != ''"]];
+                
+                replacingContent = [filtered componentsJoinedByString:@" "];
+                
+                [replacingContents addObject:replacingContent];
+            }
+        }
+        
+        if (replacingContents.count > 0) {
+            [pasteboard clearContents];
+            [pasteboard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil];
+            [pasteboard writeObjects:replacingContents];
+        }
+    }
+}
+
 - (void)paste:(id)sender {
     [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangePaste];
     
     if (self.allowsRichTextPasteOnlyFromThisClass) {
-        if ([[NSPasteboard generalPasteboard] dataForType:[[self class] pasteboardDataType]]) {
+        NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+        
+        if ([pasteboard dataForType:[[self class] pasteboardDataType]]) {
             [super paste:sender]; // just call paste so we don't have to bother doing the check again
         } else {
+            [self replacingClipboardContentsIfApplicable:pasteboard];
             [self pasteAsPlainText:self];
         }
     } else {
@@ -497,12 +557,14 @@
 }
 
 - (void)pasteAsRichText:(id)sender {
-    BOOL hasCopyDataFromThisClass = [[NSPasteboard generalPasteboard] dataForType:[[self class] pasteboardDataType]] != nil;
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    BOOL hasCopyDataFromThisClass = [pasteboard dataForType:[[self class] pasteboardDataType]] != nil;
     
     if (self.allowsRichTextPasteOnlyFromThisClass) {
         if (hasCopyDataFromThisClass) {
             [super pasteAsRichText:sender];
         } else {
+            [self replacingClipboardContentsIfApplicable:pasteboard];
             [self pasteAsPlainText:sender];
         }
     } else {
@@ -950,10 +1012,10 @@
 }
 
 + (NSAttributedString *)attributedStringFromHTMLString:(NSString *)htmlString {
-    return [[self class] attributedStringFromHTMLString:htmlString defaultFont:nil];
+    return [[self class] attributedStringFromHTMLString:htmlString defaultAttributes:@{}];
 }
 
-+ (NSAttributedString *)attributedStringFromHTMLString:(NSString *)htmlString defaultFont:(NSFont *)defaultFont {
++ (NSAttributedString *)attributedStringFromHTMLString:(NSString *)htmlString defaultAttributes:(NSDictionary<NSAttributedStringKey, id> *)defaultAttributes {
     @try {
         if ([[self class] isHTML:htmlString]) {
             NSError *error;
@@ -963,7 +1025,7 @@
                                                                                               NSCharacterEncodingDocumentAttribute: [NSNumber numberWithUnsignedInteger:NSUTF8StringEncoding]}
                                                                          documentAttributes:nil
                                                                                       error:&error
-                                                                                defaultFont:defaultFont];
+                                                                          defaultAttributes:defaultAttributes];
             
             if (attributedString.length > 0) {
                 NSAttributedString *replacedString = [[self class] replacingBulletsIfApplicableForAttributedText:[[self class] decodingNonLossyASCIIAttributedText:attributedString]];
@@ -985,6 +1047,7 @@
 
 - (void)setAttributedString:(NSAttributedString *)attributedString {
     [[self textStorage] setAttributedString:attributedString];
+    [self removeUnexpectedAttributesAtRange:[self selectedRange]];
 }
 
 + (NSAttributedString *)replacingBulletsIfApplicableForAttributedText:(NSAttributedString *)attributedText {
@@ -1491,6 +1554,7 @@
     NSPoint currentScrollPosition = [[scrollView contentView] bounds].origin;
     
     block();
+    [self removeUnexpectedAttributesAtRange:[self selectedRange]];
     
     NSPoint scrollPosition = [[scrollView contentView] bounds].origin;
     
@@ -1552,6 +1616,53 @@
     } else {
         return [self.attributedString attributesAtIndex:index effectiveRange:nil];
     }
+}
+
+- (void)removeUnexpectedAttributesAtRange:(NSRange)selectedRange {
+    NSString *bulletString = [RTELayoutManager kBulletString];
+    NSString *numberingString = [RTELayoutManager kNumberingString];
+    __block NSRange effectiveRange = selectedRange;
+    __block NSInteger rangeOffset = 0;
+    
+    [[self textStorage] beginEditing];
+    [[self textStorage] enumarateParagraphsInRange:selectedRange withBlock:^(NSRange paragraphRange) {
+        NSRange range = [[self textStorage] firstParagraphRangeFromTextRange:NSMakeRange(paragraphRange.location + rangeOffset, paragraphRange.length)];
+        BOOL currentParagraphHasBullet = [[[self textStorage].string substringFromIndex:range.location] hasPrefix:bulletString];
+        
+        if (currentParagraphHasBullet) {
+            rangeOffset = rangeOffset + bulletString.length;
+            
+            NSRange replacingRange = NSMakeRange(range.location, bulletString.length);
+            
+            /// Remove link, underline and strikethrough from the bullet string.
+            [[self textStorage] removeAttribute:NSLinkAttributeName range:replacingRange];
+            [[self textStorage] removeAttribute:NSUnderlineStyleAttributeName range:replacingRange];
+            [[self textStorage] removeAttribute:NSStrikethroughStyleAttributeName range:replacingRange];
+            
+            if (paragraphRange.location == selectedRange.location) {
+                effectiveRange = NSMakeRange(selectedRange.location + bulletString.length, selectedRange.length - bulletString.length);
+            }
+        }
+        
+        BOOL currentParagraphHasNumbering = [[[self textStorage].string substringFromIndex:range.location] hasPrefix:numberingString];
+        
+        if (currentParagraphHasNumbering) {
+            rangeOffset = rangeOffset + numberingString.length;
+            
+            NSRange replacingRange = NSMakeRange(range.location, numberingString.length);
+            
+            /// Remove link, underline and strikethrough from the numbering string.
+            [[self textStorage] removeAttribute:NSLinkAttributeName range:replacingRange];
+            [[self textStorage] removeAttribute:NSUnderlineStyleAttributeName range:replacingRange];
+            [[self textStorage] removeAttribute:NSStrikethroughStyleAttributeName range:replacingRange];
+            
+            if (paragraphRange.location == selectedRange.location) {
+                effectiveRange = NSMakeRange(selectedRange.location + numberingString.length, selectedRange.length - numberingString.length);
+            }
+        }
+    }];
+    [[self textStorage] endEditing];
+    [self setSelectedRange:effectiveRange];
 }
 
 - (void)updateTypingAttributes {
