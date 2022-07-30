@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="19529" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="19529"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="EditHyperLinkToolbar">
+            <connections>
+                <outlet property="applyButton" destination="0zG-Vq-oy2" id="LGH-TW-ULA"/>
+                <outlet property="containerView" destination="jGN-rf-5Zu" id="jQ8-tO-Ktc"/>
+                <outlet property="textField" destination="rcw-ii-BGW" id="Fgi-Wl-rps"/>
+                <outlet property="view" destination="Hz6-mo-xeY" id="0bl-1N-x8E"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customView id="Hz6-mo-xeY">
+            <rect key="frame" x="0.0" y="0.0" width="292" height="36"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <subviews>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="jGN-rf-5Zu" userLabel="Container View">
+                    <rect key="frame" x="0.0" y="0.0" width="292" height="36"/>
+                    <subviews>
+                        <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="rcw-ii-BGW" userLabel="Text Field">
+                            <rect key="frame" x="14" y="10" width="193" height="16"/>
+                            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" placeholderString="Paste a link" id="Mfg-yx-atC">
+                                <font key="font" usesAppearanceFont="YES"/>
+                                <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                            </textFieldCell>
+                            <connections>
+                                <outlet property="delegate" destination="-2" id="wfQ-IC-q7M"/>
+                            </connections>
+                        </textField>
+                        <button horizontalHuggingPriority="251" horizontalCompressionResistancePriority="250" verticalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="0zG-Vq-oy2" userLabel="Apply Button">
+                            <rect key="frame" x="214" y="-4" width="69" height="42"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="30" id="uzl-ve-auD"/>
+                            </constraints>
+                            <buttonCell key="cell" type="push" title="Apply" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i6P-k0-Zu3">
+                                <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                <font key="font" metaFont="system"/>
+                            </buttonCell>
+                            <connections>
+                                <action selector="toggleHyperLink:" target="-2" id="3Ir-gP-lRU"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="rcw-ii-BGW" firstAttribute="leading" secondItem="jGN-rf-5Zu" secondAttribute="leading" constant="16" id="BeK-40-Dkk"/>
+                        <constraint firstAttribute="trailing" secondItem="0zG-Vq-oy2" secondAttribute="trailing" constant="16" id="UXm-EC-IuX"/>
+                        <constraint firstItem="0zG-Vq-oy2" firstAttribute="leading" secondItem="rcw-ii-BGW" secondAttribute="trailing" constant="16" id="aYF-PE-x38"/>
+                        <constraint firstItem="rcw-ii-BGW" firstAttribute="centerY" secondItem="jGN-rf-5Zu" secondAttribute="centerY" id="iYJ-C3-pQO"/>
+                        <constraint firstItem="0zG-Vq-oy2" firstAttribute="centerY" secondItem="jGN-rf-5Zu" secondAttribute="centerY" id="zSI-q4-KTg"/>
+                    </constraints>
+                </customView>
+            </subviews>
+            <constraints>
+                <constraint firstItem="jGN-rf-5Zu" firstAttribute="leading" secondItem="Hz6-mo-xeY" secondAttribute="leading" id="KNc-v7-n29"/>
+                <constraint firstItem="jGN-rf-5Zu" firstAttribute="top" secondItem="Hz6-mo-xeY" secondAttribute="top" id="bX6-Ow-9mv"/>
+                <constraint firstAttribute="trailing" secondItem="jGN-rf-5Zu" secondAttribute="trailing" id="feK-Ca-lVM"/>
+                <constraint firstAttribute="bottom" secondItem="jGN-rf-5Zu" secondAttribute="bottom" id="vYS-OD-OfF"/>
+            </constraints>
+            <point key="canvasLocation" x="139" y="154"/>
+        </customView>
+    </objects>
+</document>

@@ -1,6 +1,0 @@
-framework module macOSRichTextEditor {
-  umbrella header "macOSRichTextEditor.h"
-
-  export *
-  module * { export * }
-}
