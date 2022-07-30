@@ -19,6 +19,7 @@
 @property (nonatomic, assign) BOOL isOrderedList;
 @property (nonatomic, assign) BOOL hyperlinkEnabled;
 @property (nonatomic, assign) NSTextAlignment textAlignment;
+@property (nonatomic, strong, nullable) NSURL *hyperlink;
 @property (nonatomic, strong, nullable) NSColor *textColor;
 @property (nonatomic, strong, nullable) NSColor *textBackgroundColor;
 

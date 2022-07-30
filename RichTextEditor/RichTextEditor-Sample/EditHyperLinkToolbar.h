@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, weak, nullable) id<EditToolbarDelegate> delegate;
 
+@property (nonatomic, strong, nullable) NSURL *hyperlink;
+
 @end
 
 NS_ASSUME_NONNULL_END

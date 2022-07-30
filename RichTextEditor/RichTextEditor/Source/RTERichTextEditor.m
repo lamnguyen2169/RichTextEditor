@@ -190,6 +190,24 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     return isResigned;
 }
 
+- (void)setFrame:(NSRect)frame {
+    NSView *parent = [self superview];
+    NSRect parentFrame = [parent bounds];
+    NSRect dirtyRect = frame;
+    
+    if ([parent isKindOfClass:[NSClipView class]] && !NSEqualRects(parentFrame, frame)) {
+        if (self.usesSingleLineMode) {
+            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), NSWidth(frame), NSHeight(parentFrame));
+            [[self textContainer] setContainerSize:NSMakeSize(FLT_MAX, NSHeight(frame))];
+        } else {
+            dirtyRect = NSMakeRect(NSMinX(frame), NSMinY(frame), NSWidth(parentFrame), NSHeight(frame));
+            [[self textContainer] setContainerSize:NSMakeSize(NSWidth(parentFrame), FLT_MAX)];
+        }
+    }
+    
+    [super setFrame:dirtyRect];
+}
+
 - (void)setPlaceholderAttributedString:(NSAttributedString *)placeholderAttributedString {
     _placeholderAttributedString = placeholderAttributedString;
     
@@ -509,6 +527,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         textFormat.isOrderedList = NO;
         textFormat.hyperlinkEnabled = [self isHyperlinkEnabled];
         textFormat.textAlignment = [self paragraphAlignment];
+        textFormat.hyperlink = [self.attributedString hyperlinkFromTextRange:[self selectedRange]];
         textFormat.textColor = fontColor;
         textFormat.textBackgroundColor = backgroundColor;
         
@@ -889,9 +908,9 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         
         for (NSInteger location = start; location < end; ++location) {
             NSDictionary *dictionary = [self dictionaryAtIndex:location];
-            NSString *urlString = [dictionary objectForKey:NSLinkAttributeName];
+            NSURL *url = [dictionary objectForKey:NSLinkAttributeName];
             
-            if (urlString != nil) {
+            if (url != nil) {
                 ++hyperlinkLength;
             }
         }
@@ -1643,10 +1662,13 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 - (void)mouseDown:(NSEvent *)theEvent {
     _lastSingleKeyPressed = 0;
     [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeMouseDown];
-    
-    if ([self isEditable]) {
-        [super mouseDown:theEvent];
-    }
+    [super mouseDown:theEvent];
+}
+
+- (void)mouseDragged:(NSEvent *)event {
+    _lastSingleKeyPressed = 0;
+    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeMouseDragged];
+    [super mouseDragged:event];
 }
 
 - (NSString *)bulletString {

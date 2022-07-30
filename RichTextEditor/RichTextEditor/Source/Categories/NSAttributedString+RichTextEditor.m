@@ -202,6 +202,23 @@
     return htmlString;
 }
 
+- (NSURL *)hyperlinkFromTextRange:(NSRange)textRange {
+    if (textRange.length > 0) {
+        NSDictionary *dictionary = [self attributesAtIndex:textRange.location];
+        id link = [dictionary objectForKey:NSLinkAttributeName];
+        
+        if ([link isKindOfClass:[NSURL class]]) {
+            return (NSURL *)link;
+        } else if ([link isKindOfClass:[NSString class]]) {
+            NSURL *url = [[NSURL alloc] initWithString:(NSString *)link];
+            
+            return url;
+        }
+    }
+    
+    return nil;
+}
+
 #pragma mark - Helper Methods -
 
 - (NSString *)htmlTextAlignmentString:(NSTextAlignment)textAlignment {

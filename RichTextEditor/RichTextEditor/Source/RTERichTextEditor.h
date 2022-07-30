@@ -59,10 +59,11 @@ typedef NS_ENUM(NSInteger, RichTextEditorPreviewChange) {
     RichTextEditorPreviewChangeOrderedList      = 15,
     RichTextEditorPreviewChangeHyperLink        = 16,
     RichTextEditorPreviewChangeMouseDown        = 17,
-    RichTextEditorPreviewChangeArrowKey         = 18,
-    RichTextEditorPreviewChangeKeyDown          = 19,
-    RichTextEditorPreviewChangeDelete           = 20,
-    RichTextEditorPreviewChangeFindReplace      = 21
+    RichTextEditorPreviewChangeMouseDragged     = 18,
+    RichTextEditorPreviewChangeArrowKey         = 19,
+    RichTextEditorPreviewChangeKeyDown          = 20,
+    RichTextEditorPreviewChangeDelete           = 21,
+    RichTextEditorPreviewChangeFindReplace      = 22
 };
 
 typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {

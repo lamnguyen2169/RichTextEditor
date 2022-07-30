@@ -38,5 +38,6 @@
 - (NSArray *)rangeOfParagraphsFromTextRange:(NSRange)textRange;
 - (void)enumarateParagraphsInRange:(NSRange)range withBlock:(void (^)(NSRange paragraphRange))block;
 - (NSString *)htmlString;
+- (NSURL *)hyperlinkFromTextRange:(NSRange)textRange;
 
 @end

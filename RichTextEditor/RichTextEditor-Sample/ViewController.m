@@ -60,6 +60,8 @@
 @property (weak) IBOutlet NSView *richTextView;
 @property (strong) IBOutlet RichTextEditor *textView;
 
+@property (nonatomic, strong, nullable) NSURL *hyperlink;
+
 @end
 
 @implementation ViewController
@@ -128,6 +130,7 @@
             [parent addSubview:scrollView];
             
             [textEditor setPlaceholderAttributedString:[[NSAttributedString alloc] initWithString:@"Input some text here..."]];
+            [textEditor setFont:[NSFont fontWithName:@"SavoyeLetPlain" size:18]];
             self.textField = textEditor;
         }
     }
@@ -159,6 +162,7 @@
             
             [textEditor setPlaceholderAttributedString:[[NSAttributedString alloc] initWithString:@"Input text..."]];
             [textEditor setString:text];
+            [textEditor setFont:[NSFont fontWithName:@"SavoyeLetPlain" size:36]];
             self.textView = textEditor;
         }
     }
@@ -178,7 +182,7 @@
         [self.decreaseFontSizeButton setEnabled:YES];
         [self.increaseFontSizeButton setEnabled:YES];
         [self.fontSizeButton setEnabled:YES];
-        [self.hyperlinkButton setEnabled:NO];
+        [self.hyperlinkButton setEnabled:[self.hyperlinkButton isEnabled]];
     } else {
         [self.boldButton setEnabled:YES];
         [self.italicButton setEnabled:YES];
@@ -251,6 +255,7 @@
     if (_toolbarPopover == nil) {
         EditHyperLinkToolbar *toolbar = [[EditHyperLinkToolbar alloc] initWithNibName:NSStringFromClass([EditHyperLinkToolbar class]) bundle:nil];
         toolbar.delegate = self;
+        toolbar.hyperlink = self.hyperlink;
         _toolbarPopover = [[NSPopover alloc] init];
         [_toolbarPopover setBehavior:NSPopoverBehaviorApplicationDefined];
         [_toolbarPopover setAnimates:YES];
@@ -375,6 +380,8 @@
 }
 
 - (void)richTextEditor:(RichTextEditor *)editor changedSelectionTo:(NSRange)range withFormat:(RTETextFormat *)textFormat {
+    [_toolbarPopover close];
+    
     if (textFormat.isBold) {
         self.boldButton.image = [[NSImage imageNamed:@"bold"] imageTintedWithColor:NSColor.blueColor];
     } else {
@@ -420,6 +427,7 @@
     }
     
     [self.hyperlinkButton setEnabled:textFormat.hyperlinkEnabled];
+    self.hyperlink = textFormat.hyperlink;
 }
 
 // MARK: - NSPopoverDelegate

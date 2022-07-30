@@ -25,12 +25,33 @@
     [self configUI];
 }
 
+- (void)viewWillAppear {
+    [super viewWillAppear];
+    
+    if ([self.hyperlink isKindOfClass:[NSURL class]]) {
+        [self.textField setStringValue:[self.hyperlink absoluteString]];
+        [self reloadApplyButton];
+    }
+}
+
 // MARK: -
 
 - (void)configUI {
     [self.containerView setWantsLayer:YES];
     [[self.containerView layer] setBackgroundColor:[[NSColor whiteColor] CGColor]];
     [[self.containerView layer] setCornerRadius:8];
+}
+
+- (void)reloadApplyButton {
+    NSString *urlString = [[self.textField stringValue] stringByReplacingOccurrencesOfString:@" " withString:@""];
+    
+    [urlString validateURL:^(bool isValid) {
+        BOOL isEnabled = isValid || (urlString.length == 0);
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.applyButton setEnabled:isEnabled];
+        });
+    }];
 }
 
 - (void)applyFormatLink {
@@ -63,6 +84,7 @@
 }
 
 - (void)controlTextDidChange:(NSNotification *)obj {
+    [self reloadApplyButton];
 }
 
 - (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
