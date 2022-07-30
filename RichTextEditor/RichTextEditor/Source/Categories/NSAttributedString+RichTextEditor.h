@@ -28,15 +28,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
 @interface NSAttributedString (RichTextEditor)
 
+- (nullable instancetype)initWithData:(NSData *_Nonnull)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *_Nonnull)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError *__autoreleasing _Nullable * _Nullable)error defaultFont:(NSFont *_Nullable)defaultFont;
+
 - (NSRange)firstParagraphRangeFromTextRange:(NSRange)range;
-- (NSDictionary<NSAttributedStringKey, id> *)attributesAtIndex:(NSUInteger)location;
-- (NSArray *)rangeOfParagraphsFromTextRange:(NSRange)textRange;
-- (void)enumarateParagraphsInRange:(NSRange)range withBlock:(void (^)(NSRange paragraphRange))block;
-- (NSString *)htmlString;
-- (NSURL *)hyperlinkFromTextRange:(NSRange)textRange;
+- (NSDictionary<NSAttributedStringKey, id> *_Nonnull)attributesAtIndex:(NSUInteger)location;
+- (NSArray *_Nonnull)rangeOfParagraphsFromTextRange:(NSRange)textRange;
+- (void)enumarateParagraphsInRange:(NSRange)range withBlock:(void (^_Nonnull)(NSRange paragraphRange))block;
+- (NSString *_Nonnull)htmlString;
+- (NSURL *_Nullable)hyperlinkFromTextRange:(NSRange)textRange;
 
 @end

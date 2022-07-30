@@ -170,8 +170,10 @@
 - (BOOL)becomeFirstResponder {
     BOOL isFirstResponder = [super becomeFirstResponder];
     
-    if (self.rteDelegate && [self.rteDelegate respondsToSelector:@selector(richTextEditorBecomesFirstResponder:)]) {
-        [self.rteDelegate richTextEditorBecomesFirstResponder:self];
+    if (self.rteDelegate && [self.rteDelegate respondsToSelector:@selector(richTextEditorBecomesFirstResponder:withFormat:)]) {
+        RTETextFormat *textFormat = [self typingTextFormat];
+        
+        [self.rteDelegate richTextEditorBecomesFirstResponder:self withFormat:textFormat];
     }
     
     return isFirstResponder;
@@ -533,25 +535,31 @@
 
 #pragma mark -
 
+- (RTETextFormat *)typingTextFormat {
+    NSDictionary *attributes = [self typingAttributes];
+    NSFont *font = [attributes objectForKey:NSFontAttributeName];
+    NSColor *fontColor = [attributes objectForKey:NSForegroundColorAttributeName];
+    NSColor *backgroundColor = [attributes objectForKey:NSBackgroundColorAttributeName]; // may want NSBackgroundColorAttributeName
+    RTETextFormat *textFormat = [[RTETextFormat alloc] init];
+    textFormat.font = font;
+    textFormat.isBold = [font isBold];
+    textFormat.isItalic = [font isItalic];
+    textFormat.isUnderline = [self isFontUnderlined];
+    textFormat.isStrikethrough = [self isFontStrikethrough];
+    textFormat.isBulletedList = [self isInBulletedList];
+    textFormat.isNumberingList = [self isInNumberedList];
+    textFormat.hyperlinkEnabled = [self isHyperlinkEnabled];
+    textFormat.textAlignment = [self paragraphAlignment];
+    textFormat.hyperlink = [self.attributedString hyperlinkFromTextRange:[self selectedRange]];
+    textFormat.textColor = fontColor;
+    textFormat.textBackgroundColor = backgroundColor;
+    
+    return textFormat;
+}
+
 - (void)sendDelegateTypingAttrsUpdate {
     if (self.rteDelegate && ([[self window] firstResponder] == self)) {
-        NSDictionary *attributes = [self typingAttributes];
-        NSFont *font = [attributes objectForKey:NSFontAttributeName];
-        NSColor *fontColor = [attributes objectForKey:NSForegroundColorAttributeName];
-        NSColor *backgroundColor = [attributes objectForKey:NSBackgroundColorAttributeName]; // may want NSBackgroundColorAttributeName
-        RTETextFormat *textFormat = [[RTETextFormat alloc] init];
-        textFormat.font = font;
-        textFormat.isBold = [font isBold];
-        textFormat.isItalic = [font isItalic];
-        textFormat.isUnderline = [self isFontUnderlined];
-        textFormat.isStrikethrough = [self isFontStrikethrough];
-        textFormat.isBulletedList = [self isInBulletedList];
-        textFormat.isNumberingList = [self isInNumberedList];
-        textFormat.hyperlinkEnabled = [self isHyperlinkEnabled];
-        textFormat.textAlignment = [self paragraphAlignment];
-        textFormat.hyperlink = [self.attributedString hyperlinkFromTextRange:[self selectedRange]];
-        textFormat.textColor = fontColor;
-        textFormat.textBackgroundColor = backgroundColor;
+        RTETextFormat *textFormat = [self typingTextFormat];
         
         if (self.rteDelegate && [self.rteDelegate respondsToSelector:@selector(richTextEditor:changedSelectionTo:withFormat:)]) {
             [self.rteDelegate richTextEditor:self changedSelectionTo:[self selectedRange] withFormat:textFormat];
@@ -596,98 +604,114 @@
 }
 
 - (void)userSelectedBold {
-    NSFont *font = [[self typingAttributes] objectForKey:NSFontAttributeName];
-    
-    if (!font) {
-        font = [NSFont systemFontOfSize:12.0f];
-    }
-    
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeBold];
-    [self applyFontAttributesToSelectedRangeWithBoldTrait:[NSNumber numberWithBool:![font isBold]] italicTrait:nil fontName:nil fontSize:nil];
-    [self sendDelegateTypingAttrsUpdate];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        NSFont *font = [[self typingAttributes] objectForKey:NSFontAttributeName];
+        
+        if (!font) {
+            font = [NSFont systemFontOfSize:12.0f];
+        }
+        
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeBold];
+        [self applyFontAttributesToSelectedRangeWithBoldTrait:[NSNumber numberWithBool:![font isBold]] italicTrait:nil fontName:nil fontSize:nil];
+        [self sendDelegateTypingAttrsUpdate];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedItalic {
-    NSFont *font = [[self typingAttributes] objectForKey:NSFontAttributeName];
-    
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeItalic];
-    [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:[NSNumber numberWithBool:![font isItalic]] fontName:nil fontSize:nil];
-    [self sendDelegateTypingAttrsUpdate];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        NSFont *font = [[self typingAttributes] objectForKey:NSFontAttributeName];
+        
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeItalic];
+        [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:[NSNumber numberWithBool:![font isItalic]] fontName:nil fontSize:nil];
+        [self sendDelegateTypingAttrsUpdate];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedUnderline {
-    NSNumber *existingUnderlineStyle;
-    
-    if (![self isFontUnderlined]) {
-        existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
-    } else {
-        existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleNone];
-    }
-    
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeUnderline];
-    [self applyAttributesToSelectedRange:existingUnderlineStyle forKey:NSUnderlineStyleAttributeName];
-    [self sendDelegateTypingAttrsUpdate];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        NSNumber *existingUnderlineStyle;
+        
+        if (![self isFontUnderlined]) {
+            existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
+        } else {
+            existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleNone];
+        }
+        
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeUnderline];
+        [self applyAttributesToSelectedRange:existingUnderlineStyle forKey:NSUnderlineStyleAttributeName];
+        [self sendDelegateTypingAttrsUpdate];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedStrikethrough {
-    NSNumber *existingUnderlineStyle;
-    
-    if (![self isFontStrikethrough]) {
-        existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
-    } else {
-        existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleNone];
-    }
-    
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeStrikethrough];
-    [self applyAttributesToSelectedRange:existingUnderlineStyle forKey:NSStrikethroughStyleAttributeName];
-    [self sendDelegateTypingAttrsUpdate];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        NSNumber *existingUnderlineStyle;
+        
+        if (![self isFontStrikethrough]) {
+            existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
+        } else {
+            existingUnderlineStyle = [NSNumber numberWithInteger:NSUnderlineStyleNone];
+        }
+        
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeStrikethrough];
+        [self applyAttributesToSelectedRange:existingUnderlineStyle forKey:NSStrikethroughStyleAttributeName];
+        [self sendDelegateTypingAttrsUpdate];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedIncreaseIndent {
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeIndentIncrease];
-    [self userSelectedParagraphIndentation:ParagraphIndentationIncrease];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeIndentIncrease];
+        [self userSelectedParagraphIndentation:ParagraphIndentationIncrease];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedDecreaseIndent {
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeIndentDecrease];
-    [self userSelectedParagraphIndentation:ParagraphIndentationDecrease];
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeIndentDecrease];
+        [self userSelectedParagraphIndentation:ParagraphIndentationDecrease];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedTextBackgroundColor:(NSColor *)color {
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeHighlight];
-    NSRange selectedRange = [self selectedRange];
-    
-    if (color) {
-        [self applyAttributesToSelectedRange:color forKey:NSBackgroundColorAttributeName];
-    } else {
-        [self removeAttributeForKeyFromSelectedRange:NSBackgroundColorAttributeName];
-    }
-    
-    if (self.shouldEndColorChangeOnLeft) {
-        [self setSelectedRange:NSMakeRange(selectedRange.location, 0)];
-    } else {
-        [self setSelectedRange:NSMakeRange(selectedRange.location + selectedRange.length, 0)];
-    }
-    
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeHighlight];
+        NSRange selectedRange = [self selectedRange];
+        
+        if (color) {
+            [self applyAttributesToSelectedRange:color forKey:NSBackgroundColorAttributeName];
+        } else {
+            [self removeAttributeForKeyFromSelectedRange:NSBackgroundColorAttributeName];
+        }
+        
+        if (self.shouldEndColorChangeOnLeft) {
+            [self setSelectedRange:NSMakeRange(selectedRange.location, 0)];
+        } else {
+            [self setSelectedRange:NSMakeRange(selectedRange.location + selectedRange.length, 0)];
+        }
+        
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userSelectedTextColor:(NSColor *)color {
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeFontColor];
-    
-    if (color) {
-        [self applyAttributesToSelectedRange:color forKey:NSForegroundColorAttributeName];
-    } else {
-        [self removeAttributeForKeyFromSelectedRange:NSForegroundColorAttributeName];
-    }
-    
-    [self sendDelegateTVChanged];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeFontColor];
+        
+        if (color) {
+            [self applyAttributesToSelectedRange:color forKey:NSForegroundColorAttributeName];
+        } else {
+            [self removeAttributeForKeyFromSelectedRange:NSForegroundColorAttributeName];
+        }
+        
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (void)userApplyHyperlink:(NSURL *_Nullable)url {
@@ -699,32 +723,34 @@
 }
 
 - (void)userApplyHyperlink:(NSURL *_Nullable)url color:(NSColor *_Nullable)color underlineStyle:(NSUnderlineStyle)underlineStyle {
-    ///
-    [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeHyperLink];
-    
-    if (url) {
-        [self applyAttributesToSelectedRange:[url absoluteString] forKey:NSLinkAttributeName];
-        
+    [self performBlockWithRestoringScrollLocation:^{
         ///
-        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeFontColor];
+        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeHyperLink];
         
-        if (color) {
-            [self applyAttributesToSelectedRange:color forKey:NSForegroundColorAttributeName];
+        if (url) {
+            [self applyAttributesToSelectedRange:[url absoluteString] forKey:NSLinkAttributeName];
+            
+            ///
+            [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeFontColor];
+            
+            if (color) {
+                [self applyAttributesToSelectedRange:color forKey:NSForegroundColorAttributeName];
+            } else {
+                [self removeAttributeForKeyFromSelectedRange:NSForegroundColorAttributeName];
+            }
+            
+            ///
+            [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeUnderline];
+            [self applyAttributesToSelectedRange:[NSNumber numberWithInteger:underlineStyle] forKey:NSUnderlineStyleAttributeName];
+            [self sendDelegateTypingAttrsUpdate];
         } else {
+            [self removeAttributeForKeyFromSelectedRange:NSLinkAttributeName];
             [self removeAttributeForKeyFromSelectedRange:NSForegroundColorAttributeName];
+            [self applyAttributesToSelectedRange:[NSNumber numberWithInteger:NSUnderlineStyleNone] forKey:NSUnderlineStyleAttributeName];
         }
         
-        ///
-        [self sendDelegatePreviewChangeOfType:RichTextEditorPreviewChangeUnderline];
-        [self applyAttributesToSelectedRange:[NSNumber numberWithInteger:underlineStyle] forKey:NSUnderlineStyleAttributeName];
-        [self sendDelegateTypingAttrsUpdate];
-    } else {
-        [self removeAttributeForKeyFromSelectedRange:NSLinkAttributeName];
-        [self removeAttributeForKeyFromSelectedRange:NSForegroundColorAttributeName];
-        [self applyAttributesToSelectedRange:[NSNumber numberWithInteger:NSUnderlineStyleNone] forKey:NSUnderlineStyleAttributeName];
-    }
-    
-    [self sendDelegateTVChanged];
+        [self sendDelegateTVChanged];
+    }];
 }
 
 - (BOOL)canBecomeFirstResponder {
@@ -914,7 +940,7 @@
         NSAttributedString *attributedString = [[self class] encodingNonLossyASCIIAttributedText:attributedText];
         NSData *data = [attributedString dataFromRange:NSMakeRange(0, attributedString.length)
                                     documentAttributes:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
-                                                         NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
+                                                         NSCharacterEncodingDocumentAttribute: [NSNumber numberWithUnsignedInteger:NSUTF8StringEncoding]}
                                                  error:nil];
         
         return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -924,14 +950,20 @@
 }
 
 + (NSAttributedString *)attributedStringFromHTMLString:(NSString *)htmlString {
+    return [[self class] attributedStringFromHTMLString:htmlString defaultFont:nil];
+}
+
++ (NSAttributedString *)attributedStringFromHTMLString:(NSString *)htmlString defaultFont:(NSFont *)defaultFont {
     @try {
         if ([[self class] isHTML:htmlString]) {
             NSError *error;
             NSData *data = [htmlString dataUsingEncoding:NSUTF8StringEncoding];
             NSAttributedString *attributedString = [[NSAttributedString alloc] initWithData:data
                                                                                     options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType,
-                                                                                              NSCharacterEncodingDocumentAttribute: [NSNumber numberWithInt:NSUTF8StringEncoding]}
-                                                                         documentAttributes:nil error:&error];
+                                                                                              NSCharacterEncodingDocumentAttribute: [NSNumber numberWithUnsignedInteger:NSUTF8StringEncoding]}
+                                                                         documentAttributes:nil
+                                                                                      error:&error
+                                                                                defaultFont:defaultFont];
             
             if (attributedString.length > 0) {
                 NSAttributedString *replacedString = [[self class] replacingBulletsIfApplicableForAttributedText:[[self class] decodingNonLossyASCIIAttributedText:attributedString]];
@@ -1063,13 +1095,17 @@
 }
 
 - (void)userChangedToFontSize:(NSNumber *)fontSize {
-    [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:nil fontName:nil fontSize:fontSize];
-    [self setNeedsUpdateLayout:YES];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:nil fontName:nil fontSize:fontSize];
+        [self setNeedsUpdateLayout:YES];
+    }];
 }
 
 - (void)userChangedToFontName:(NSString *)fontName {
-    [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:nil fontName:fontName fontSize:nil];
-    [self setNeedsUpdateLayout:YES];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self applyFontAttributesToSelectedRangeWithBoldTrait:nil italicTrait:nil fontName:fontName fontSize:nil];
+        [self setNeedsUpdateLayout:YES];
+    }];
 }
 
 - (BOOL)isFontUnderlined {
@@ -1227,21 +1263,23 @@
 }
 
 - (void)userSelectedParagraphFirstLineHeadIndent {
-    [self enumarateThroughParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
-        NSDictionary *dictionary = [self dictionaryAtIndex:paragraphRange.location];
-        NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-        
-        if (!paragraphStyle) {
-            paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-        }
-        
-        if (paragraphStyle.headIndent == paragraphStyle.firstLineHeadIndent) {
-            paragraphStyle.firstLineHeadIndent += self.firstLineHeadIndent;
-        } else {
-            paragraphStyle.firstLineHeadIndent = paragraphStyle.headIndent;
-        }
-        
-        [self applyAttributes:paragraphStyle forKey:NSParagraphStyleAttributeName atRange:paragraphRange];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self enumarateThroughParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
+            NSDictionary *dictionary = [self dictionaryAtIndex:paragraphRange.location];
+            NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+            
+            if (!paragraphStyle) {
+                paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+            }
+            
+            if (paragraphStyle.headIndent == paragraphStyle.firstLineHeadIndent) {
+                paragraphStyle.firstLineHeadIndent += self.firstLineHeadIndent;
+            } else {
+                paragraphStyle.firstLineHeadIndent = paragraphStyle.headIndent;
+            }
+            
+            [self applyAttributes:paragraphStyle forKey:NSParagraphStyleAttributeName atRange:paragraphRange];
+        }];
     }];
 }
 
@@ -1259,30 +1297,36 @@
 }
 
 - (void)userSelectedTextAlignment:(NSTextAlignment)textAlignment {
-    [self enumarateThroughParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
-        NSDictionary *dictionary = [self dictionaryAtIndex:paragraphRange.location];
-        NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
-        
-        if (!paragraphStyle) {
-            paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-        }
-        
-        paragraphStyle.alignment = textAlignment;
-        
-        [self applyAttributes:paragraphStyle forKey:NSParagraphStyleAttributeName atRange:paragraphRange];
-        [self setIndentationWithAttributes:dictionary paragraphStyle:paragraphStyle atRange:paragraphRange];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self enumarateThroughParagraphsInRange:[self selectedRange] withBlock:^(NSRange paragraphRange) {
+            NSDictionary *dictionary = [self dictionaryAtIndex:paragraphRange.location];
+            NSMutableParagraphStyle *paragraphStyle = [[dictionary objectForKey:NSParagraphStyleAttributeName] mutableCopy];
+            
+            if (!paragraphStyle) {
+                paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+            }
+            
+            paragraphStyle.alignment = textAlignment;
+            
+            [self applyAttributes:paragraphStyle forKey:NSParagraphStyleAttributeName atRange:paragraphRange];
+            [self setIndentationWithAttributes:dictionary paragraphStyle:paragraphStyle atRange:paragraphRange];
+        }];
     }];
 }
 
 /// http://stackoverflow.com/questions/5810706/how-to-programmatically-add-bullet-list-to-nstextview might be useful to look at some day (or maybe not)
 - (void)userSelectedBulletedList {
-    [self userSelectedFormatListWithType:RichTextEditorPreviewChangeBulletedList];
-    [self setNeedsUpdateLayout:YES];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self userSelectedFormatListWithType:RichTextEditorPreviewChangeBulletedList];
+        [self setNeedsUpdateLayout:YES];
+    }];
 }
 
 - (void)userSelectedNumberingList {
-    [self userSelectedFormatListWithType:RichTextEditorPreviewChangeNumberingList];
-    [self setNeedsUpdateLayout:YES];
+    [self performBlockWithRestoringScrollLocation:^{
+        [self userSelectedFormatListWithType:RichTextEditorPreviewChangeNumberingList];
+        [self setNeedsUpdateLayout:YES];
+    }];
 }
 
 - (void)userSelectedFormatListWithType:(RichTextEditorPreviewChange)formatType {
@@ -1436,7 +1480,32 @@
     [self setNeedsDisplay:needsUpdateLayout];
 }
 
-- (void)enumarateThroughParagraphsInRange:(NSRange)range withBlock:(void (^)(NSRange paragraphRange))block{
+- (void)performBlockWithRestoringScrollLocation:(void (^)(void))block {
+    /// Have no idea why the RichTextEditor is programmatically created,
+    /// its scrollView will automatically scroll anytime these following methods of NSTextStorage called
+    /// [-deleteCharactersInRange:]
+    /// [-insertAttributedString:atIndex:]
+    /// [-addAttribute:value:range:]
+    /// Therefor, have to trick by restoring the current scrolling position after above methods called.
+    NSScrollView *scrollView = self.enclosingScrollView;
+    NSPoint currentScrollPosition = [[scrollView contentView] bounds].origin;
+    
+    block();
+    
+    NSPoint scrollPosition = [[scrollView contentView] bounds].origin;
+    
+    if ((currentScrollPosition.x != scrollPosition.x) || (currentScrollPosition.y != scrollPosition.y)) {
+        NSRect scrollFrame = [scrollView bounds];
+        NSRect documentFrame = [[scrollView documentView] frame];
+        CGFloat deltaX = NSMinX(scrollFrame) - NSMinX(documentFrame);
+        CGFloat deltaY = NSMinY(scrollFrame) - NSMinY(documentFrame);
+        NSPoint location = NSMakePoint(currentScrollPosition.x + deltaX, currentScrollPosition.y + deltaY);
+        
+        [[scrollView documentView] scrollPoint:location];
+    }
+}
+
+- (void)enumarateThroughParagraphsInRange:(NSRange)range withBlock:(void (^)(NSRange paragraphRange))block {
     NSArray *rangeOfParagraphsInSelectedText = [self.attributedString rangeOfParagraphsFromTextRange:range];
     
     for (int i = 0; i < rangeOfParagraphsInSelectedText.count; i++) {
@@ -1445,12 +1514,14 @@
         block(paragraphRange);
     }
     
-    rangeOfParagraphsInSelectedText = [self.attributedString rangeOfParagraphsFromTextRange:[self selectedRange]];
+    rangeOfParagraphsInSelectedText = [self.attributedString rangeOfParagraphsFromTextRange:([self selectedRange].length < range.length) ? range : [self selectedRange]];
     NSRange fullRange = [self fullRangeFromArrayOfParagraphRanges:rangeOfParagraphsInSelectedText];
     
     if (fullRange.location + fullRange.length > [self.attributedString length]) {
         fullRange.length = 0;
         fullRange.location = [self.attributedString length] - 1;
+    } else {
+        fullRange = NSMakeRange(fullRange.location, fullRange.length - 1);
     }
     
     [self setSelectedRange:fullRange];

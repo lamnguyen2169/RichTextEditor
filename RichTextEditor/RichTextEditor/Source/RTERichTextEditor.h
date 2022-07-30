@@ -99,7 +99,7 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 
 @optional
 
-- (void)richTextEditorBecomesFirstResponder:(RichTextEditor *_Nonnull)editor;
+- (void)richTextEditorBecomesFirstResponder:(RichTextEditor *_Nonnull)editor withFormat:(RTETextFormat *_Nonnull)textFormat;
 - (void)richTextEditorResignsFirstResponder:(RichTextEditor *_Nonnull)editor;
 - (void)richTextEditor:(RichTextEditor *_Nonnull)editor changedSelectionTo:(NSRange)range withFormat:(RTETextFormat *_Nonnull)textFormat;
 - (BOOL)richTextEditor:(RichTextEditor *_Nonnull)editor keyDownEvent:(NSEvent *_Nonnull)event; // return YES if handled by delegate, NO if RTE should process it
@@ -260,8 +260,14 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 /// Converts the provided NSAttributedString into an HTML string.
 + (NSString *_Nonnull)htmlStringFromAttributedText:(NSAttributedString *_Nonnull)text;
 
-/// Converts the given HTML string into an NSAttributedString.
+/// Converts the given HTML string into an NSAttributedString with defaultFont is nil.
+/// @note If you don't provide the defaultFont and the html string contains custom font,
+/// it might return to the .AppleSystemUIFont or Times-Roman font.
 + (NSAttributedString *_Nullable)attributedStringFromHTMLString:(NSString *_Nonnull)htmlString;
+/// Converts the given HTML string into an NSAttributedString with specific defaultFont.
+/// @note If you don't provide the defaultFont and the html string contains custom font,
+/// it might return to the .AppleSystemUIFont or Times-Roman font.
++ (NSAttributedString *_Nullable)attributedStringFromHTMLString:(NSString *_Nonnull)htmlString defaultFont:(NSFont *_Nullable)defaultFont;
 
 /// Converts a given RichTextEditorPreviewChange to a human-readable string
 + (NSString *_Nonnull)convertPreviewChangeTypeToString:(RichTextEditorPreviewChange)changeType withNonSpecialChangeText:(BOOL)shouldReturnStringForNonSpecialType;

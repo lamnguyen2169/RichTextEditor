@@ -1,30 +1,30 @@
 //
-//  FontManager.m
-//  macOSRTESample
+//  RTEFontManager.m
+//  RichTextEditor
 //
 //  Created by ChrisK on 7/5/22.
 //  Copyright (c) 2022 ChrisK. All rights reserved.
 //
 
-#import "FontManager.h"
+#import "RTEFontManager.h"
 
-@interface FontManager () {
+@interface RTEFontManager () {
     NSMutableArray<NSFont *> *_availableFonts;
 }
 
 @end
 
-@implementation FontManager
+@implementation RTEFontManager
 
 // MARK: -
 
-+ (FontManager *)sharedManager
++ (RTEFontManager *)sharedManager
 {
-    static FontManager *_sharedInstance = nil;
+    static RTEFontManager *_sharedInstance = nil;
     static dispatch_once_t onceToken;
     
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[FontManager alloc] init];
+        _sharedInstance = [[RTEFontManager alloc] init];
     });
     
     return _sharedInstance;
@@ -60,7 +60,7 @@
 // MARK: -
 
 + (void)startUp {
-    [FontManager sharedManager];
+    [RTEFontManager sharedManager];
 }
 
 @end

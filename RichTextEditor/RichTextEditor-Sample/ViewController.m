@@ -8,8 +8,6 @@
 
 #import "ViewController.h"
 
-#import "FontManager.h"
-
 #import "EditHyperLinkToolbar.h"
 
 @interface NSImage (Tint)
@@ -224,10 +222,10 @@ She told me to pray every day, and whatever I asked for I would get it. But it w
     
     if (event != NULL) {
         NSMenu *menu = [[NSMenu alloc] init];
-        NSArray<NSFont *> *availableFonts = [FontManager sharedManager].availableFonts;
+        NSArray<NSFont *> *availableFonts = [RTEFontManager sharedManager].availableFonts;
         
         for (NSFont *font in availableFonts) {
-            NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:font.fontName action:@selector(fontMenuDidSelectItem:) keyEquivalent:@""];
+            NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:(font.familyName != nil) ? font.familyName : font.fontName action:@selector(fontMenuDidSelectItem:) keyEquivalent:@""];
             [item setRepresentedObject:font];
             [menu addItem:item];
         }

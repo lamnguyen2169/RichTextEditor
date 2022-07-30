@@ -18,5 +18,6 @@ FOUNDATION_EXPORT const unsigned char RichTextEditorVersionString[];
 
 #include <RichTextEditor/RTERichTextEditor.h>
 #include <RichTextEditor/RTETextFormat.h>
+#include <RichTextEditor/RTEFontManager.h>
 #include <RichTextEditor/NSFont+RichTextEditor.h>
 #include <RichTextEditor/NSAttributedString+RichTextEditor.h>

@@ -30,8 +30,50 @@
 #import "NSAttributedString+RichTextEditor.h"
 
 #import "NSFont+RichTextEditor.h"
+#import "RTEFontManager.h"
 
 @implementation NSAttributedString (RichTextEditor)
+
+- (nullable instancetype)initWithData:(NSData *)data options:(NSDictionary<NSAttributedStringDocumentReadingOptionKey, id> *)options documentAttributes:(NSDictionary<NSAttributedStringDocumentAttributeKey, id> * _Nullable * _Nullable)documentAttributes error:(NSError **)error defaultFont:(NSFont *_Nullable)defaultFont {
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithData:data
+                                                                                          options:options
+                                                                               documentAttributes:documentAttributes error:error];
+    
+    if (attributedString.length > 0) {
+        if ([defaultFont isKindOfClass:[NSFont class]]) {
+            NSArray<NSFont *> *availableFonts = [[RTEFontManager sharedManager] availableFonts];
+            
+            [attributedString beginEditing];
+            [attributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, attributedString.length) options:kNilOptions usingBlock:^(id _Nullable value, NSRange range, BOOL * _Nonnull stop) {
+                if ([value isKindOfClass:[NSFont class]]) {
+                    NSFont *font = (NSFont *)value;
+                    
+                    if (![availableFonts containsObject:font]) {
+                        BOOL isBold = [font isBold];
+                        BOOL isItalic = [font isItalic];
+                        NSFont *replacingFont = [NSFont fontWithName:defaultFont.fontName size:font.pointSize boldTrait:isBold italicTrait:isItalic];
+                        
+                        if (replacingFont == nil) {
+                            replacingFont = [defaultFont fontWithBoldTrait:isBold italicTrait:isItalic andSize:font.pointSize];
+                        }
+                        
+                        if (replacingFont != nil) {
+                            [attributedString removeAttribute:NSFontAttributeName range:range];
+                            [attributedString addAttribute:NSFontAttributeName value:replacingFont range:range];
+                        } else {
+                            NSLog(@"%s [Line %d] availableFonts NOT contains, cannot replace font: %@", __PRETTY_FUNCTION__, __LINE__, font);
+                        }
+                    }
+                }
+            }];
+            [attributedString endEditing];
+        }
+        
+        return attributedString;
+    }
+    
+    return nil;
+}
 
 #pragma mark - Public Methods -
 
