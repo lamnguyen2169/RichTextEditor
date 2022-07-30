@@ -115,10 +115,6 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 }
 
 + (instancetype)initWithParent:(NSView *)parent frame:(NSRect)frame {
-    return [[self class] initWithParent:parent frame:frame widthTracks:YES heightTracks:NO];
-}
-
-+ (instancetype)initWithParent:(NSView *)parent frame:(NSRect)frame widthTracks:(BOOL)widthTracks heightTracks:(BOOL)heightTracks {
     NSSize contentSize = frame.size;
     
     ///
@@ -153,9 +149,8 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
     [textEditor setVerticallyResizable:YES];
     [textEditor setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
     [textEditor setTextContainerInset:NSZeroSize];
-    [[textEditor textContainer] setWidthTracksTextView:widthTracks];
-    [[textEditor textContainer] setHeightTracksTextView:heightTracks];
-    [[textEditor textContainer] setLineFragmentPadding:0];
+    [[textEditor textContainer] setWidthTracksTextView:NO];
+    [[textEditor textContainer] setHeightTracksTextView:NO];
     [[textEditor textContainer] setMaximumNumberOfLines:0];
     
     [scrollView setDocumentView:textEditor];
@@ -568,7 +563,7 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
         [self setTextContainerInset:NSZeroSize];
         [[self textContainer] setContainerSize:NSMakeSize(FLT_MAX, NSHeight(frame))];
         [[self textContainer] setWidthTracksTextView:NO];
-        [[self textContainer] setHeightTracksTextView:YES];
+        [[self textContainer] setHeightTracksTextView:NO];
         [[self textContainer] setMaximumNumberOfLines:1];
     }
 }
@@ -714,6 +709,14 @@ typedef NS_ENUM(NSInteger, ParagraphIndentation) {
 }
 
 #pragma mark - Public Methods -
+
+- (void)setWidthTracksTextView:(BOOL)widthTracksTextView {
+    [[self textContainer] setWidthTracksTextView:widthTracksTextView];
+}
+
+- (void)setHeightTracksTextView:(BOOL)heightTracksTextView {
+    [[self textContainer] setHeightTracksTextView:heightTracksTextView];
+}
 
 - (void)setLineFragmentPadding:(CGFloat)padding {
     [[self textContainer] setLineFragmentPadding:padding];

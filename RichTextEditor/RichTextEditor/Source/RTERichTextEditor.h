@@ -145,7 +145,6 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 // MARK: -
 
 + (instancetype _Nonnull)initWithParent:(NSView *_Nonnull)parent frame:(NSRect)frame;
-+ (instancetype _Nonnull)initWithParent:(NSView *_Nonnull)parent frame:(NSRect)frame widthTracks:(BOOL)widthTracks heightTracks:(BOOL)heightTracks;
 
 // MARK: -
 
@@ -218,6 +217,12 @@ typedef NS_OPTIONS(NSUInteger, RichTextEditorShortcut) {
 
 /// Convenience method; YES if user has something selected (selection length > 0).
 - (BOOL)hasSelection;
+
+/// A Boolean that controls whether the text container adjusts the width of its bounding rectangle when its text view resizes.
+- (void)setWidthTracksTextView:(BOOL)widthTracksTextView;
+
+/// A Boolean that controls whether the text container adjusts the height of its bounding rectangle when its text view resizes.
+- (void)setHeightTracksTextView:(BOOL)heightTracksTextView;
 
 /// Changes the editor's lineFragmentPadding.
 - (void)setLineFragmentPadding:(CGFloat)padding;
